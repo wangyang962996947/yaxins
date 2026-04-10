@@ -1,6 +1,6 @@
 <!--
   CodeScanner.vue — 代码扫描插件前端组件
-  流程：上传 ZIP → 输入提示词 → 提交扫描 → 轮询等待 → 展示 HTML 报告
+  流程：上传 ZIP → 输入提示词 → 提交扫描 → 轮询等待 → 报告列表 → 点击行弹出 Modal 展示 HTML
 -->
 <template>
   <div class="scanner-plugin">
@@ -88,25 +88,50 @@
         <div class="progress-bar-wrap">
           <div class="progress-bar" :style="{ width: progressPercent + '%' }" />
         </div>
-        <p class="hint">请勿关闭或刷新页面，扫描完成后将自动展示报告</p>
+        <p class="hint">请勿关闭或刷新页面，扫描完成后将自动展示报告列表</p>
         <button class="btn-cancel" @click="cancelScan">取消扫描</button>
       </div>
     </div>
 
-    <!-- Step 4: 展示结果 -->
+    <!-- Step 4: 报告列表 -->
     <div v-if="step === 4" class="step-card result">
       <div class="step-title">
         <span class="step-num">✅</span>
         <span>扫描结果</span>
-        <span class="elapsed-badge">耗时 {{ formatElapsed(totalMs) }}</span>
+        <span class="elapsed-badge">共 {{ reportList.length }} 份报告 · 耗时 {{ formatElapsed(totalMs) }}</span>
       </div>
       <div class="step-body">
         <div class="result-actions">
-          <button class="btn-secondary" @click="downloadMd">📥 下载 MD 原文</button>
           <button class="btn-secondary" @click="reset">🔄 重新扫描</button>
         </div>
-        <div class="report-container">
-          <div class="report-content markdown-body" v-html="reportHtml" />
+
+        <!-- 报告列表 -->
+        <div class="report-list-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width:60px">序号</th>
+                <th>文件名</th>
+                <th style="width:180px">生成时间</th>
+                <th style="width:100px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="item in reportList"
+                :key="item.index"
+                class="report-row"
+                @click="openModal(item)"
+              >
+                <td class="center">{{ item.index }}</td>
+                <td class="filename">{{ item.filename }}</td>
+                <td class="time">{{ item.generateTime }}</td>
+                <td class="center">
+                  <button class="btn-view" @click.stop="openModal(item)">查看</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -122,12 +147,29 @@
         <button class="btn-primary" @click="reset">重新扫描</button>
       </div>
     </div>
+
+    <!-- HTML 预览 Modal -->
+    <div v-if="modalVisible" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title">{{ activeItem?.filename }}</span>
+          <button class="modal-close" @click="closeModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <iframe
+            v-if="activeItem"
+            :srcdoc="activeItem.htmlContent"
+            class="html-iframe"
+            sandbox="allow-scripts"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { marked } from 'marked'
 import { v4 as uuidv4 } from 'uuid'
 import {
   buildPromptWithUploadInstruction,
@@ -135,6 +177,7 @@ import {
   waitForResult,
   cancelWait,
   resetCancel,
+  type ReportItem,
 } from './scanService'
 
 // ============= 状态 =============
@@ -145,9 +188,12 @@ const taskUUID = ref('')
 const elapsedMs = ref(0)
 const totalMs = ref(0)
 const pollCount = ref(0)
-const reportHtml = ref('')
-const reportMd = ref('')
+const reportList = ref<ReportItem[]>([])
 const errorMessage = ref('')
+
+// Modal 状态
+const modalVisible = ref(false)
+const activeItem = ref<ReportItem | null>(null)
 
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
@@ -199,8 +245,7 @@ async function submitScan() {
   elapsedMs.value = 0
   totalMs.value = 0
   pollCount.value = 0
-  reportHtml.value = ''
-  reportMd.value = ''
+  reportList.value = []
   errorMessage.value = ''
   resetCancel()
 
@@ -208,26 +253,22 @@ async function submitScan() {
   taskUUID.value = uuid
   const enrichedPrompt = buildPromptWithUploadInstruction(prompt.value, uuid)
 
-  // 启动耗时计时
   const startTime = Date.now()
   pollTimer = setInterval(() => {
     elapsedMs.value = Date.now() - startTime
   }, 1000)
 
   try {
-    // 提交任务
     await submitScanTask(selectedFile.value, enrichedPrompt, uuid)
 
-    // 轮询等待 MinIO 文件
-    const mdContent = await waitForResult(
+    const list = await waitForResult(
       uuid,
       (elapsed) => { elapsedMs.value = elapsed },
       () => { pollCount.value++ }
     )
 
     totalMs.value = elapsedMs.value
-    reportMd.value = mdContent
-    reportHtml.value = await marked(mdContent)
+    reportList.value = list
     step.value = 4
   } catch (err: any) {
     errorMessage.value = err.message || '扫描过程出现未知错误'
@@ -251,20 +292,21 @@ function reset() {
   elapsedMs.value = 0
   totalMs.value = 0
   pollCount.value = 0
-  reportHtml.value = ''
-  reportMd.value = ''
+  reportList.value = []
   errorMessage.value = ''
+  closeModal()
   if (pollTimer) clearInterval(pollTimer)
 }
 
-function downloadMd() {
-  const blob = new Blob([reportMd.value], { type: 'text/markdown;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `scan-report-${taskUUID.value}.md`
-  a.click()
-  URL.revokeObjectURL(url)
+// ============= Modal 操作 =============
+function openModal(item: ReportItem) {
+  activeItem.value = item
+  modalVisible.value = true
+}
+
+function closeModal() {
+  modalVisible.value = false
+  activeItem.value = null
 }
 
 function formatElapsed(ms: number): string {
@@ -530,7 +572,7 @@ function formatElapsed(ms: number): string {
   margin: 0;
 }
 
-/* 结果 */
+/* 结果列表 */
 .elapsed-badge {
   margin-left: auto;
   font-size: 12px;
@@ -547,15 +589,80 @@ function formatElapsed(ms: number): string {
   margin-bottom: 16px;
 }
 
-.report-container {
+.report-list-wrap {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  overflow: auto;
-  max-height: 600px;
+  overflow: hidden;
 }
 
-.report-content {
-  padding: 24px;
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.report-table thead tr {
+  background: #f9fafb;
+}
+
+.report-table th {
+  text-align: left;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.report-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.report-row:last-child td {
+  border-bottom: none;
+}
+
+.report-row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.report-row:hover {
+  background: #f0f7ff;
+}
+
+.report-row td.center {
+  text-align: center;
+}
+
+.report-row td.filename {
+  font-weight: 500;
+  color: #1d4ed8;
+}
+
+.report-row td.time {
+  font-size: 12px;
+  color: #9ca3af;
+  font-family: monospace;
+}
+
+.btn-view {
+  padding: 4px 12px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-view:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
 }
 
 /* 错误 */
@@ -569,22 +676,81 @@ function formatElapsed(ms: number): string {
   margin: 0 0 16px;
   font-size: 14px;
 }
-</style>
 
-<!-- 全局 markdown 样式（可抽到单独的 CSS 文件） -->
-<style>
-.markdown-body {
-  font-size: 14px;
-  line-height: 1.7;
-  color: #1f2937;
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
 }
-.markdown-body h1 { font-size: 22px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
-.markdown-body h2 { font-size: 18px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
-.markdown-body h3 { font-size: 16px; }
-.markdown-body table { border-collapse: collapse; width: 100%; margin: 12px 0; }
-.markdown-body th, .markdown-body td { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; }
-.markdown-body th { background: #f9fafb; font-weight: 600; }
-.markdown-body code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-.markdown-body pre { background: #1f2937; color: #f9fafb; padding: 16px; border-radius: 8px; overflow-x: auto; }
-.markdown-body pre code { background: none; padding: 0; color: inherit; }
+
+.modal-box {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 960px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  gap: 12px;
+}
+
+.modal-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.modal-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.html-iframe {
+  width: 100%;
+  height: 75vh;
+  border: none;
+  display: block;
+}
 </style>
