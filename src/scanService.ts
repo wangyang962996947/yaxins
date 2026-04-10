@@ -39,11 +39,9 @@ export function generateUUID(): string {
 
 export function buildPromptWithUploadInstruction(
   originalPrompt: string,
-  _uuid: string
+  uuid: string
 ): string {
-  if (USE_MOCK) {
-    return `${originalPrompt}\n\n请生成一份中文 Markdown 格式的代码扫描报告。`
-  }
+  // 追加 MinIO 上传指令，模拟后端大模型在生成报告后自动上传到 MinIO
   return `${originalPrompt}
 
 请将生成的代码扫描报告文件上传到 MinIO 对象存储：
@@ -51,7 +49,7 @@ export function buildPromptWithUploadInstruction(
 - 用户名：admin
 - 密码：A12345678
 - 存储桶：code-scanning
-- 文件名：${_uuid}
+- 文件名：${uuid}
 （请直接上传原始 Markdown 文件，不要压缩）`
 }
 

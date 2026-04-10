@@ -27,6 +27,51 @@ if (!fs.existsSync(DATA_DIR)) {
 
 // ============= MinIO API 模拟 =============
 
+  // ============ 辅助命令接口 ============
+
+/**
+ * GET /seed?uuid=xxx — 往 MinIO（9000主服务）注入一个 MD 文件
+ * 用于 E2E 测试：先调用 seed，再轮询 GET /xxx 直到文件出现
+ */
+function handleSeed(res: http.ServerResponse, uuid: string) {
+  const filePath = getObjectPath(uuid)
+  const fakeReport = `# 代码扫描报告（Mock）
+
+**任务 ID：** ${uuid}
+**扫描时间：** ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}
+**数据来源：** 本地模拟 MinIO
+
+---
+
+## 📊 扫描概要
+
+| 指标 | 数量 |
+|------|------|
+| 扫描文件总数 | 42 |
+| 高危问题 | 3 |
+| 中危问题 | 7 |
+| 低危问题 | 12 |
+
+---
+
+## 🚨 高危问题
+
+### 1. SQL 注入风险
+- **文件：** \`src/database/query.ts:23\`
+- **描述：** 用户输入直接拼接到 SQL 语句
+
+### 2. 硬编码密钥
+- **文件：** \`src/config/secrets.ts:5\`
+
+---
+
+*此为 Mock 数据，用于开发调试*
+`
+  fs.writeFileSync(filePath, Buffer.from(fakeReport, 'utf-8'))
+  const stat = fs.statSync(filePath)
+  sendJSON(res, 200, { uuid, seeded: true, path: filePath, size: stat.size })
+}
+
 function sendJSON(res: http.ServerResponse, status: number, data: unknown) {
   res.writeHead(status, {
     'Content-Type': 'application/json',
@@ -57,6 +102,14 @@ const server = http.createServer(async (req: http.IncomingMessage, res: http.Ser
   // CORS 预检
   if (req.method === 'OPTIONS') {
     sendEmpty(res, 204)
+    return
+  }
+
+  // GET /seed?uuid=xxx — 注入文件（测试用）
+  if (pathname === '/seed' && req.method === 'GET') {
+    const uuid = url.searchParams.get('uuid')
+    if (!uuid) { sendJSON(res, 400, { error: 'missing uuid' }); return }
+    handleSeed(res, uuid)
     return
   }
 

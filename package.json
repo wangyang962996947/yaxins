@@ -25,6 +25,7 @@
     "@types/node": "^22.13.9",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-vue": "^5.2.1",
+    "playwright": "^1.59.1",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vite": "^6.2.1",

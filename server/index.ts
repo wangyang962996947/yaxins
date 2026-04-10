@@ -2,8 +2,11 @@
  * server/index.ts — Express 模拟后端
  *
  * 作用：开发调试用，模拟真实代码扫描服务
+ * 模拟场景：收到 ZIP + 提示词（末尾已追加 MinIO 上传指令），
+ *           假装是大模型在处理，约 60s 后"按照提示词指令"上传报告到 MinIO
+ *
  * 行为：POST /api/scan/submit → 立即返回 202，
- *        60秒后在本地 Mock MinIO（localhost:9000）注入 MD 报告文件
+ *       60秒后模拟"大模型"上传 MD 报告文件到 Mock MinIO（localhost:9000）
  */
 
 import express from 'express'

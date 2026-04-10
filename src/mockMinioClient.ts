@@ -1,6 +1,6 @@
 /**
  * mockMinioClient.ts — 连接本地 Mock MinIO Server 的客户端
- * 接口与 minio.ts 完全一致，开发调试用
+ * 接口与 minio.ts 完全一致，浏览器兼容（无 Buffer 依赖）
  */
 
 const MOCK_BASE = 'http://localhost:9000'
@@ -31,45 +31,48 @@ export async function fileExists(objectName: string): Promise<boolean> {
   }
 }
 
-/** 下载文本文件 */
+/** 下载文本文件（浏览器兼容） */
 export async function downloadTextFile(objectName: string): Promise<string> {
   const res = await fetchRetry(`${MOCK_BASE}/${objectName}`, { method: 'GET' })
   if (!res.ok) {
     throw new Error(`文件不存在: ${objectName}`)
   }
   const ab = await res.arrayBuffer()
-  return Buffer.from(ab).toString('utf-8')
+  // 使用 TextDecoder 而非 Buffer（浏览器兼容）
+  return new TextDecoder('utf-8').decode(ab)
 }
 
 /** 下载 Buffer */
-export async function downloadBuffer(objectName: string): Promise<Buffer> {
+export async function downloadBuffer(objectName: string): Promise<Uint8Array> {
   const res = await fetchRetry(`${MOCK_BASE}/${objectName}`, { method: 'GET' })
   if (!res.ok) throw new Error(`文件不存在: ${objectName}`)
   const ab = await res.arrayBuffer()
-  return Buffer.from(ab)
+  return new Uint8Array(ab)
 }
 
-/** 上传文本 */
+/** 上传文本（浏览器兼容） */
 export async function uploadTextFile(objectName: string, content: string): Promise<void> {
-  const buffer = Buffer.from(content, 'utf-8')
+  // TextEncoder 输出 Uint8Array，fetch 原生接受
+  const encoded = new TextEncoder().encode(content)
   const res = await fetch(`${MOCK_BASE}/${objectName}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
-    body: buffer,
+    body: encoded,
   })
   if (!res.ok) throw new Error(`上传失败: HTTP ${res.status}`)
 }
 
-/** 上传 Buffer */
+/** 上传 Buffer（浏览器兼容） */
 export async function uploadBuffer(
   objectName: string,
-  buffer: Buffer,
+  buffer: Uint8Array | ArrayBuffer,
   contentType = 'text/markdown; charset=utf-8'
 ): Promise<void> {
+  const data = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : buffer
   const res = await fetch(`${MOCK_BASE}/${objectName}`, {
     method: 'PUT',
     headers: { 'Content-Type': contentType },
-    body: new Uint8Array(buffer),
+    body: data as BodyInit,
   })
   if (!res.ok) throw new Error(`上传失败: HTTP ${res.status}`)
 }
