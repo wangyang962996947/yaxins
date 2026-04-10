@@ -1,18 +1,24 @@
 {
   "agent:main:feishu:direct:ou_0b09d73328aba9ee56b8bb871bf3fb3a": {
     "sessionId": "93cd33f0-22b7-4525-89da-51a56b834c6d",
-    "updatedAt": 1775816068989,
+    "updatedAt": 1775820276099,
     "systemSent": true,
     "abortedLastRun": false,
     "chatType": "direct",
     "deliveryContext": {
-      "channel": "feishu"
+      "channel": "feishu",
+      "to": "user:ou_0b09d73328aba9ee56b8bb871bf3fb3a",
+      "accountId": "default"
     },
     "lastChannel": "feishu",
     "origin": {
       "provider": "webchat",
       "surface": "webchat",
-      "chatType": "direct"
+      "chatType": "direct",
+      "label": "ou_0b09d73328aba9ee56b8bb871bf3fb3a",
+      "from": "feishu:ou_0b09d73328aba9ee56b8bb871bf3fb3a",
+      "to": "user:ou_0b09d73328aba9ee56b8bb871bf3fb3a",
+      "accountId": "default"
     },
     "sessionFile": "/home/gem/workspace/agent/agents/main/sessions/93cd33f0-22b7-4525-89da-51a56b834c6d.jsonl",
     "compactionCount": 3,
@@ -281,15 +287,15 @@
       ],
       "version": 0
     },
-    "status": "done",
-    "startedAt": 1775815996104,
+    "status": "running",
+    "startedAt": 1775820276076,
     "systemPromptReport": {
       "source": "run",
-      "generatedAt": 1775815996082,
-      "sessionId": "1afb8fe7-2cc1-4747-83e8-81a003feda03",
+      "generatedAt": 1775819955758,
+      "sessionId": "93cd33f0-22b7-4525-89da-51a56b834c6d",
       "sessionKey": "agent:main:feishu:direct:ou_0b09d73328aba9ee56b8bb871bf3fb3a",
       "provider": "miaoda",
-      "model": "miaoda-model-auto",
+      "model": "minimax-m2.7",
       "workspaceDir": "/home/gem/workspace/agent/workspace",
       "bootstrapMaxChars": 20000,
       "bootstrapTotalMaxChars": 150000,
@@ -305,9 +311,9 @@
         "sandboxed": false
       },
       "systemPrompt": {
-        "chars": 37447,
+        "chars": 38760,
         "projectContextChars": 9388,
-        "nonProjectContextChars": 28059
+        "nonProjectContextChars": 29372
       },
       "injectedWorkspaceFiles": [
         {
@@ -473,8 +479,8 @@
         ]
       },
       "tools": {
-        "listChars": 8468,
-        "schemaChars": 41763,
+        "listChars": 8972,
+        "schemaChars": 42738,
         "entries": [
           {
             "name": "read",
@@ -532,7 +538,7 @@
           },
           {
             "name": "message",
-            "summaryChars": 123,
+            "summaryChars": 129,
             "schemaChars": 5547,
             "propertiesCount": 104
           },
@@ -631,6 +637,30 @@
             "summaryChars": 66,
             "schemaChars": 149,
             "propertiesCount": 1
+          },
+          {
+            "name": "list_projects",
+            "summaryChars": 79,
+            "schemaChars": 33,
+            "propertiesCount": 0
+          },
+          {
+            "name": "miaoda_check_progress",
+            "summaryChars": 40,
+            "schemaChars": 131,
+            "propertiesCount": 1
+          },
+          {
+            "name": "miaoda_write_reference",
+            "summaryChars": 124,
+            "schemaChars": 512,
+            "propertiesCount": 5
+          },
+          {
+            "name": "miaoda_coding",
+            "summaryChars": 172,
+            "schemaChars": 299,
+            "propertiesCount": 3
           },
           {
             "name": "feishu_get_user",
@@ -785,20 +815,20 @@
         ]
       }
     },
-    "cacheRead": 38523,
+    "cacheRead": 57339,
     "cacheWrite": 0,
     "totalTokensFresh": true,
     "providerOverride": "miaoda",
     "modelOverride": "minimax-m2.7",
     "modelProvider": "miaoda",
-    "model": "miaoda-model-auto",
+    "model": "minimax-m2.7",
     "contextTokens": 200000,
-    "inputTokens": 39829,
-    "outputTokens": 2110,
+    "inputTokens": 6412,
+    "outputTokens": 2374,
     "estimatedCostUsd": 0,
-    "totalTokens": 38668,
-    "endedAt": 1775816068978,
-    "runtimeMs": 72874
+    "totalTokens": 57626,
+    "lastTo": "user:ou_0b09d73328aba9ee56b8bb871bf3fb3a",
+    "lastAccountId": "default"
   },
   "agent:main:subagent:461d755d-5065-4af0-9e74-8a55ea59d25c": {
     "sessionId": "0c1fb749-472a-4cfa-aab5-d5ad14f28a3f",

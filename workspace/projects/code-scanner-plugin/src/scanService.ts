@@ -3,7 +3,6 @@
  * 流程：提交任务 → 轮询 MinIO → 返回报告列表
  */
 
-import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 
 // ============= 报告项类型 =============
@@ -29,7 +28,6 @@ async function getSimulator() {
 // ============= 配置 =============
 
 const MINIO_UPLOAD_URL = 'http://10.28.198.153:9010/code-scanning/'
-const API_BASE = '/api'
 
 // ============= 提示词构造 =============
 
@@ -50,15 +48,9 @@ export async function submitScanTask(
   enrichedPrompt: string,
   uuid: string
 ): Promise<{ uuid: string; status: string; message: string }> {
-  const formData = new FormData()
-  formData.append('uuid', uuid)
-  formData.append('prompt', enrichedPrompt)
-  formData.append('file', zipFile)
-
-  const res = await axios.post(`${API_BASE}/scan/submit`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
-  return res.data
+  // 使用浏览器端模拟器，避免依赖后端服务
+  const sim = await getSimulator()
+  return sim.submitScanTask(zipFile, enrichedPrompt, uuid)
 }
 
 // ============= 轮询等待结果（返回报告列表） =============

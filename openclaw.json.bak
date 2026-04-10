@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.24",
-    "lastTouchedAt": "2026-04-10T06:54:30.108Z"
+    "lastTouchedAt": "2026-04-10T11:05:28.945Z"
   },
   "wizard": {
     "lastRunAt": "2026-03-30T14:54:56.160Z",
@@ -270,6 +270,12 @@
         "name": "qa",
         "workspace": "/home/gem/workspace/agent/workspace/agents/qa",
         "agentDir": "/home/gem/workspace/agent/agents/qa/agent"
+      },
+      {
+        "id": "ops",
+        "name": "ops",
+        "workspace": "/home/gem/workspace/agent/workspace/agents/ops",
+        "agentDir": "/home/gem/workspace/agent/agents/ops/agent"
       }
     ]
   },
@@ -550,7 +556,8 @@
   "plugins": {
     "allow": [
       "openclaw-lark",
-      "openclaw-extension-miaoda"
+      "openclaw-extension-miaoda",
+      "openclaw-extension-miaoda-coding"
     ],
     "entries": {
       "feishu": {
@@ -568,6 +575,9 @@
         }
       },
       "openclaw-lark": {
+        "enabled": true
+      },
+      "openclaw-extension-miaoda-coding": {
         "enabled": true
       }
     },
@@ -597,6 +607,20 @@
         "shasum": "27f36d085fafd1a1c9a15ee25b03d9723f37943a",
         "resolvedAt": "2026-04-07T06:14:41.636Z",
         "installedAt": "2026-04-07T06:14:42.036Z"
+      },
+      "openclaw-extension-miaoda-coding": {
+        "source": "npm",
+        "spec": "@lark-apaas/openclaw-extension-miaoda-coding",
+        "sourcePath": "/tmp/lark-apaas-openclaw-extension-miaoda-coding-1.0.8.tgz",
+        "installPath": "/home/gem/workspace/agent/extensions/openclaw-extension-miaoda-coding",
+        "version": "1.0.8",
+        "resolvedName": "@lark-apaas/openclaw-extension-miaoda-coding",
+        "resolvedVersion": "1.0.8",
+        "resolvedSpec": "@lark-apaas/openclaw-extension-miaoda-coding@1.0.8",
+        "integrity": "sha512-uxlLtgH2CTwz56UTaZD+n/x1p2a3Q01o3Og7oLUJCm6izWHXFEI1SQhNnCPggrfSam49KFir8xB64tY4T9dt2Q==",
+        "shasum": "058eadf5bc71ae87f79b5096b9d96f4afb89a9db",
+        "resolvedAt": "2026-04-10T11:04:52.252Z",
+        "installedAt": "2026-04-10T11:04:52.252Z"
       }
     }
   }

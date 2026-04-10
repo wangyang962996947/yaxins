@@ -104,7 +104,7 @@ async function main() {
 
   // B4
   await runStep('B4. 安全扫描模板填充', async () => {
-    const btn = page.locator('.prompt-templates .btn-tpl').first()
+    const btn = page.locator('.prompt-templates .btn-tpl').nth(1)
     await btn.click()
     const val = await page.locator('.prompt-input').inputValue()
     if (!val.includes('安全')) throw new Error(`模板未填充: ${val.slice(0,30)}`)

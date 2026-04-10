@@ -38,9 +38,8 @@
       <div class="step-body">
         <div class="prompt-templates">
           <span class="label">快速模板：</span>
-          <button class="btn-tpl" @click="useTemplate('security')">🔒 安全扫描</button>
-          <button class="btn-tpl" @click="useTemplate('quality')">📋 代码质量</button>
-          <button class="btn-tpl" @click="useTemplate('best-practice')">✨ 最佳实践</button>
+          <button class="btn-tpl" @click="useTemplate('biz-logic')">📄 业务逻辑说明文档</button>
+          <button class="btn-tpl" @click="useTemplate('security-analysis')">🔒 业务逻辑安全分析</button>
         </div>
         <textarea
           v-model="prompt"
@@ -171,6 +170,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
+import { bizLogicTemplate, securityAnalysisTemplate } from './promptTemplates'
 import {
   buildPromptWithUploadInstruction,
   submitScanTask,
@@ -215,27 +215,8 @@ function onDrop(e: DragEvent) {
   }
 }
 
-function useTemplate(type: 'security' | 'quality' | 'best-practice') {
-  const templates = {
-    security: `请对这个代码仓库进行全面的安全扫描：
-1. 检查 SQL 注入、XSS、CSRF 等常见 Web 安全漏洞
-2. 检查硬编码密钥、API Token、密码等敏感信息泄露
-3. 检查不安全的依赖库版本
-4. 生成一份详细的安全问题报告，按严重程度分级（高/中/低）`,
-    quality: `请对这个代码仓库进行代码质量评估：
-1. 检查代码重复率
-2. 检查命名规范和注释覆盖率
-3. 检查圈复杂度和可维护性
-4. 检查模块化和耦合度
-5. 生成改进建议报告`,
-    'best-practice': `请检查这个代码仓库的工程实践水平：
-1. Git 提交规范和分支策略
-2. CI/CD 流程配置
-3. 测试覆盖率
-4. 文档完整性
-5. 给出综合评分和改进建议`,
-  }
-  prompt.value = templates[type]
+function useTemplate(type: 'biz-logic' | 'security-analysis') {
+  prompt.value = type === 'biz-logic' ? bizLogicTemplate : securityAnalysisTemplate
 }
 
 async function submitScan() {
