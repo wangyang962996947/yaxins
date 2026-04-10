@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.24",
-    "lastTouchedAt": "2026-04-10T05:44:04.435Z"
+    "lastTouchedAt": "2026-04-07T06:14:42.073Z"
   },
   "wizard": {
     "lastRunAt": "2026-03-30T14:54:56.160Z",
@@ -61,7 +61,6 @@
           {
             "id": "miaoda-model-auto",
             "name": "妙搭",
-            "api": "openai-completions",
             "reasoning": false,
             "input": [
               "text"
@@ -78,7 +77,6 @@
           {
             "id": "miaoda-auto-multimodal",
             "name": "妙搭多模态",
-            "api": "openai-completions",
             "reasoning": false,
             "input": [
               "text",
@@ -96,7 +94,6 @@
           {
             "id": "miaoda-model-flash",
             "name": "妙搭 Flash",
-            "api": "openai-completions",
             "reasoning": false,
             "input": [
               "text"
@@ -109,76 +106,6 @@
             },
             "contextWindow": 200000,
             "maxTokens": 8192
-          },
-          {
-            "id": "glm-5",
-            "name": "GLM-5.1",
-            "api": "openai-completions",
-            "reasoning": true,
-            "input": [
-              "text"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 200000,
-            "maxTokens": 30000
-          },
-          {
-            "id": "qwen-3.6-plus",
-            "name": "Qwen 3.6",
-            "api": "openai-completions",
-            "reasoning": true,
-            "input": [
-              "text",
-              "image"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 200000,
-            "maxTokens": 16000
-          },
-          {
-            "id": "minimax-m2.7",
-            "name": "MiniMax M2.7",
-            "api": "openai-completions",
-            "reasoning": false,
-            "input": [
-              "text"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 200000,
-            "maxTokens": 16000
-          },
-          {
-            "id": "doubao-seed-2.0-pro",
-            "name": "豆包 Seed 2.0 Pro",
-            "api": "openai-completions",
-            "reasoning": true,
-            "input": [
-              "text",
-              "image"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 200000,
-            "maxTokens": 16000
           }
         ]
       }
@@ -202,18 +129,6 @@
         },
         "miaoda/miaoda-model-flash": {
           "alias": "Miaoda Flash"
-        },
-        "miaoda/glm-5": {
-          "alias": "GLM-5.1"
-        },
-        "miaoda/qwen-3.6-plus": {
-          "alias": "Qwen 3.6"
-        },
-        "miaoda/minimax-m2.7": {
-          "alias": "MiniMax M2.7"
-        },
-        "miaoda/doubao-seed-2.0-pro": {
-          "alias": "豆包 Seed 2.0 Pro"
         }
       },
       "workspace": "/home/gem/workspace/agent/workspace",
