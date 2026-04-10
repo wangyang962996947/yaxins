@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>携转用户开户业务逻辑安全分析报告.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%E6%90%BA%E8%BD%AC%E7%94%A8%E6%88%B7%E5%BC%80%E6%88%B7-%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E6%8A%A5%E5%91%8A">携转用户开户 业务逻辑安全分析报告</h1>
+<h2 id="%E4%B8%80%E6%BC%8F%E6%B4%9E%E6%A6%82%E8%A7%88">一、漏洞概览</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">漏洞编号</th>
+<th style="text-align:left">漏洞名称</th>
+<th style="text-align:left">严重程度</th>
+<th style="text-align:left">漏洞类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">VUL-001</td>
+<td style="text-align:left">开户提交接口重复提交（幂等性缺失）</td>
+<td style="text-align:left">高危</td>
+<td style="text-align:left">业务流程绕过/参数重放</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-002</td>
+<td style="text-align:left">携入号码归属地校验硬编码绕过</td>
+<td style="text-align:left">高危</td>
+<td style="text-align:left">权限与访问控制/权限提升路径</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-003</td>
+<td style="text-align:left">吉祥号码验证码授权仅前端控制</td>
+<td style="text-align:left">高危</td>
+<td style="text-align:left">权限与访问控制/越权操作</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-004</td>
+<td style="text-align:left">NP_VERIFY记录删除与开户操作非原子性</td>
+<td style="text-align:left">高危</td>
+<td style="text-align:left">业务流程绕过/状态机异常</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-005</td>
+<td style="text-align:left">营销活动类型02权限校验可被绕过</td>
+<td style="text-align:left">中危</td>
+<td style="text-align:left">权限与访问控制/权限提升路径</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-006</td>
+<td style="text-align:left">证件预占释放条件不完整</td>
+<td style="text-align:left">中危</td>
+<td style="text-align:left">业务流程绕过/状态机异常</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-007</td>
+<td style="text-align:left">随机密码弱随机数生成</td>
+<td style="text-align:left">中危</td>
+<td style="text-align:left">数据校验缺失/数据类型混淆</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-008</td>
+<td style="text-align:left">协议生成接口非幂等可被滥用</td>
+<td style="text-align:left">中危</td>
+<td style="text-align:left">业务流程绕过/参数重放</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-009</td>
+<td style="text-align:left">值班长验证码无频率限制和重试锁定</td>
+<td style="text-align:left">中危</td>
+<td style="text-align:left">验证码与限流/无操作频率限制</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-010</td>
+<td style="text-align:left">一证多名检查仅覆盖证件类型0</td>
+<td style="text-align:left">低危</td>
+<td style="text-align:left">数据校验缺失/业务规则绕过</td>
+</tr>
+<tr>
+<td style="text-align:left">VUL-011</td>
+<td style="text-align:left">吉祥号操作日志异常被静默吞没</td>
+<td style="text-align:left">低危</td>
+<td style="text-align:left">信息泄露/审计缺失</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="%E4%BA%8C%E6%BC%8F%E6%B4%9E%E8%AF%A6%E6%83%85">二、漏洞详情</h2>
+<h3 id="21-%E6%8F%90%E4%BA%A4%E5%BC%80%E6%88%B7%E6%B5%81%E7%A8%8B---%E5%BC%80%E6%88%B7%E6%8F%90%E4%BA%A4%E6%8E%A5%E5%8F%A3%E9%87%8D%E5%A4%8D%E6%8F%90%E4%BA%A4%E5%B9%82%E7%AD%89%E6%80%A7%E7%BC%BA%E5%A4%B1">2.1 提交开户流程 - 开户提交接口重复提交（幂等性缺失）</h3>
+<p><strong>漏洞类型：</strong> 业务流程绕过/参数重放</p>
+<p><strong>风险等级：</strong> 高危</p>
+<p><strong>漏洞描述：</strong>
+<code>onTradeSubmit</code> 接口调用 <code>createNpSubscriber</code> 创建用户、账户、订购和携转关系记录，整个流程无任何幂等性控制。攻击者可通过拦截请求并重复发送，在同一携入号码上创建多个用户账户，导致重复开户、资源浪费、计费混乱等严重后果。业务逻辑说明文档 6.5 节已明确标注&quot;重复提交会创建重复用户&quot;。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>NpSubscriberOpen.java:134-185</code></p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onTradeSubmit</span><span class="hljs-params">(IRequestCycle cycle)</span> <span class="hljs-keyword">throws</span> Exception
+</span>{
+    IData param = <span class="hljs-keyword">this</span>.getData();
+    IData acctInfo = <span class="hljs-keyword">this</span>.getData(<span class="hljs-string">"acctinfo"</span>);
+    param.putAll(acctInfo);
+    IDataset offerList = <span class="hljs-keyword">new</span> DatasetList(param.getString(<span class="hljs-string">"SELECTED_OFFER_VALUE"</span>));
+    <span class="hljs-comment">// ... 组装offerList</span>
+    param.put(<span class="hljs-string">"OFFERS"</span>, offerList);
+    param.put(<span class="hljs-string">"ROUTE_CODE"</span>,<span class="hljs-keyword">this</span>.getVisit().getLoginEparchyCode());
+
+    IData result  = <span class="hljs-keyword">new</span> DataMap();
+    <span class="hljs-keyword">boolean</span> hasError = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">try</span>{
+        result  =<span class="hljs-keyword">this</span>.call(<span class="hljs-string">"OrderCentre.person.INpSubscriberOpenOperateSV.createNpSubscriber"</span>, param);
+    }<span class="hljs-keyword">catch</span>(Exception e) {
+        String eMsg = e.getMessage();
+        <span class="hljs-keyword">if</span>(!StringUtil.contains(eMsg,<span class="hljs-string">"证件号码被预占"</span>)){
+            hasError=<span class="hljs-keyword">true</span>;
+        }
+        <span class="hljs-keyword">throw</span> e;
+    }<span class="hljs-keyword">finally</span>{
+        <span class="hljs-keyword">if</span>(hasError){
+            <span class="hljs-comment">//证件解预占</span>
+            IData input = <span class="hljs-keyword">new</span> DataMap();
+            input.put(<span class="hljs-string">"CUST_NAME"</span>, param.getString(<span class="hljs-string">"PARTY_NAME"</span>,param.getString(<span class="hljs-string">"UP_NAME"</span>,<span class="hljs-string">""</span>)));
+            input.put(<span class="hljs-string">"IDEN_TYPE_ID"</span>, idenTypeID);
+            input.put(<span class="hljs-string">"IDEN_NR"</span>, param.getString(<span class="hljs-string">"IDEN_NR"</span>));
+            input.put(<span class="hljs-string">"CAMP_ON"</span>, <span class="hljs-string">"02"</span>);
+            <span class="hljs-keyword">this</span>.call(<span class="hljs-string">"CustomerCentre.custmgr.ICCOutOperateSV.cardCampOn"</span>, input);
+        }
+    }
+    setAjax(result);
+}
+</div></code></pre>
+<p><strong>漏洞成因分析：</strong></p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant Attacker as 攻击者
+    participant FE as 前端
+    participant API as NpSubscriberOpen.onTradeSubmit
+    participant SV as createNpSubscriber
+    participant DB as 数据库
+    
+    Note over Attacker,DB: 漏洞利用流程 - 重复提交开户
+    Attacker->>FE: 正常完成开户流程
+    FE->>API: 提交开户请求(携带完整表单数据)
+    API->>SV: createNpSubscriber
+    SV->>DB: INSERT 用户表/账户表/订购表/携转关系表
+    DB-->>SV: TRADE_ID, 开户成功
+    SV-->>API: 返回成功
+    API-->>FE: 开户完成
+    Note over Attacker: 拦截并保存该请求
+    Attacker->>API: 重放同一请求(相同ACCESS_NUM, IDEN_NR)
+    Note over API: 无请求去重/幂等校验
+    API->>SV: createNpSubscriber(相同参数)
+    SV->>DB: 再次INSERT
+    Note over DB: 若无唯一约束则创建重复记录
+    DB-->>SV: 可能成功
+    SV-->>API: 返回成功
+    API-->>Attacker: 重复开户成功
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>登录系统，进入携转用户开户页面</li>
+<li>正常完成携入号码校验、SIM卡校验、套餐选择、协议签订全流程</li>
+<li>打开浏览器开发者工具，切换到 Network 面板</li>
+<li>点击&quot;提交&quot;按钮，拦截 <code>onTradeSubmit</code> 请求</li>
+<li>记录请求参数（ACCESS_NUM、IDEN_NR、SELECTED_OFFER_VALUE 等）</li>
+<li>等待首次提交完成后，使用 Burp Repeater 或 curl 重放同一请求</li>
+<li>观察响应，检查数据库是否创建了重复用户记录</li>
+</ol>
+<p><strong>预期结果：</strong> 系统应检测到重复提交，返回&quot;该号码已存在开户工单&quot;或类似错误</p>
+<p><strong>实际结果：</strong> 系统无幂等性校验，可能创建重复用户/账户/订购记录</p>
+<p><strong>验证请求示例：</strong></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">POST</span> <span class="hljs-string">/person/cs/npsubscriberopen/NpSubscriberOpen.app?service=listener/onTradeSubmit</span> HTTP/1.1
+<span class="hljs-attribute">Host</span>: crm.example.com
+<span class="hljs-attribute">Cookie</span>: JSESSIONID=xxx
+<span class="hljs-attribute">Content-Type</span>: application/x-www-form-urlencoded
+
+<span class="dts">ACCESS_NUM=<span class="hljs-number">13800138000</span><span class="hljs-variable">&amp;</span>IDEN_NR=<span class="hljs-number">530102199001011234</span><span class="hljs-variable">&amp;</span>PARTY_NAME=张三<span class="hljs-variable">&amp;</span>SELECTED_OFFER_VALUE=[{<span class="hljs-string">"OFFER_ID"</span>:<span class="hljs-string">"100001"</span>}]<span class="hljs-variable">&amp;</span>ICC_ID=<span class="hljs-number">89860000000000000001</span>&amp;...
+</span></div></code></pre>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 在 <code>onTradeSubmit</code> 入口处增加唯一性校验，基于 ACCESS_NUM + 当前日期 + 操作员ID 生成请求指纹，写入 Redis 或数据库去重表，设置合理过期时间（如5分钟）</li>
+<li><strong>代码层面：</strong> 在 <code>createNpSubscriber</code> 服务中增加前置校验：<code>SELECT COUNT(*) FROM 用户表 WHERE ACCESS_NUM = ? AND STATUS = '有效'</code>，若已存在则拒绝</li>
+<li><strong>架构层面：</strong> 引入分布式锁（Redis SETNX），以 ACCESS_NUM 为 key，在开户提交期间持有锁，防止并发提交</li>
+<li><strong>配置层面：</strong> 数据库层面对 ACCESS_NUM + STATUS 添加唯一约束</li>
+</ul>
+<p><strong>参考：</strong> 类似案例 - CWE-362: Concurrent Execution using Shared Resource with Improper Synchronization</p>
+<hr>
+<h3 id="22-%E6%90%BA%E5%85%A5%E5%8F%B7%E7%A0%81%E6%A0%A1%E9%AA%8C%E6%B5%81%E7%A8%8B---%E5%BD%92%E5%B1%9E%E5%9C%B0%E6%A0%A1%E9%AA%8C%E7%A1%AC%E7%BC%96%E7%A0%81%E7%BB%95%E8%BF%87">2.2 携入号码校验流程 - 归属地校验硬编码绕过</h3>
+<p><strong>漏洞类型：</strong> 权限与访问控制/权限提升路径</p>
+<p><strong>风险等级：</strong> 高危</p>
+<p><strong>漏洞描述：</strong>
+<code>CheckAccessNumSVC</code> 在校验携入号码归属地时，对工号 <code>IBOSS000</code> 做了硬编码豁免，跳过归属地一致性校验。这意味着任何能使用该工号（或伪造该工号）的操作员可以为任意地州的携入号码办理开户，突破了地州业务隔离的安全边界。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>CheckAccessNumSVC.java:141-148</code></p>
+<pre class="hljs"><code><div>String staffId = String.valueOf(userinfo.get(BcConstants.TRADE_STAFF_ID));
+
+<span class="hljs-comment">// ... 查询号码归属地 areaCode</span>
+
+<span class="hljs-keyword">if</span>(!StringUtil.equals(<span class="hljs-string">"IBOSS000"</span>, staffId)){<span class="hljs-comment">//接口进来不校验     hedong3</span>
+    <span class="hljs-keyword">if</span> (!StringUtils.equals(areaCode,tradeEparchyCode))
+    {
+        <span class="hljs-comment">//登陆员工地州:"+tradeEparchyCode+"与携入号码归属地:"+areaCode+"不一致!</span>
+        CSBizException.bizerr(OrderException.CRM_ORDER_85,tradeEparchyCode,areaCode);
+    }
+}
+</div></code></pre>
+<p><strong>漏洞成因分析：</strong></p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant Attacker as 恶意操作员
+    participant API as CheckAccessNumSVC
+    participant DB as 号码资源表
+    
+    Note over Attacker,DB: 漏洞利用流程 - 跨地州携入开户
+    Attacker->>API: checkAccessNum(ACCESS_NUM=异地号码)
+    Note over API: staffId = "IBOSS000"
+    Note over API: 硬编码判断: 跳过归属地校验
+    API->>DB: SELECT 携转用户表(不校验地州)
+    DB-->>API: 返回携转数据
+    API-->>Attacker: 校验通过, 可继续开户
+    Note over Attacker: 跨地州携入开户成功
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>使用工号 <code>IBOSS000</code> 登录系统（或通过接口调用模拟该工号）</li>
+<li>进入携转用户开户页面</li>
+<li>输入一个归属地与当前登录地州不一致的携入号码</li>
+<li>点击校验按钮</li>
+<li>观察响应，确认是否通过校验</li>
+</ol>
+<p><strong>预期结果：</strong> 系统应校验操作员地州与号码归属地一致性，跨地州应拒绝</p>
+<p><strong>实际结果：</strong> 工号 <code>IBOSS000</code> 完全跳过归属地校验，可为任意地州号码开户</p>
+<p><strong>验证请求示例：</strong></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">POST</span> <span class="hljs-string">/person/cs/npsubscriberopen/NpSubscriberOpen.app?service=listener/checkAccessNum</span> HTTP/1.1
+<span class="hljs-attribute">Host</span>: crm.example.com
+<span class="hljs-attribute">Cookie</span>: JSESSIONID=xxx
+<span class="hljs-attribute">Content-Type</span>: application/x-www-form-urlencoded
+
+<span class="dts">ACCESS_NUM=<span class="hljs-number">13908710001</span><span class="hljs-variable">&amp;</span>NP_BACK=<span class="hljs-number">0</span><span class="hljs-variable">&amp;</span>AGENT_DEPART_ID=<span class="hljs-variable">&amp;</span>EC_GROUP_ID=
+<span class="hljs-meta"># 假设当前登录地州为<span class="hljs-string">"昆明"</span>，但号码归属地为<span class="hljs-string">"大理"</span></span>
+<span class="hljs-meta"># 使用IBOSS000工号登录时可绕过校验</span>
+</span></div></code></pre>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 移除硬编码 <code>IBOSS000</code> 豁免逻辑，改为通过权限配置表控制跨地州操作权限</li>
+<li><strong>代码层面：</strong> 若确实需要接口调用豁免，应通过请求来源标识（如 IP 白名单、API Gateway 签名）而非工号判断</li>
+<li><strong>配置层面：</strong> 建立跨地州操作审批流程，所有跨地州操作记录审计日志并触发告警</li>
+<li><strong>架构层面：</strong> 引入 API Gateway 层，区分前端页面调用和后端系统接口调用</li>
+</ul>
+<hr>
+<h3 id="23-%E5%90%89%E7%A5%A5%E5%8F%B7%E7%A0%81%E6%9D%83%E9%99%90%E6%A0%A1%E9%AA%8C%E6%B5%81%E7%A8%8B---%E9%AA%8C%E8%AF%81%E7%A0%81%E6%8E%88%E6%9D%83%E4%BB%85%E5%89%8D%E7%AB%AF%E6%8E%A7%E5%88%B6">2.3 吉祥号码权限校验流程 - 验证码授权仅前端控制</h3>
+<p><strong>漏洞类型：</strong> 权限与访问控制/越权操作</p>
+<p><strong>风险等级：</strong> 高危</p>
+<p><strong>漏洞描述：</strong>
+吉祥号码需要值班长验证码授权才能办理，但验证码校验结果 <code>yzmValidFlag</code> 仅存储在前端 JavaScript 变量中。攻击者可通过修改前端 JS 变量或直接构造请求绕过验证码校验，在未经值班长授权的情况下为吉祥号码开户。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>NpSubscriberOpen.java:275-299</code> - 吉祥号判断仅返回 ISLUCKY 标记</p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initIMPOWER</span><span class="hljs-params">(IRequestCycle cycle)</span> <span class="hljs-keyword">throws</span> Exception
+</span>{
+    IData param = <span class="hljs-keyword">this</span>.getData();
+    IData result1 = <span class="hljs-keyword">this</span>.call(<span class="hljs-string">"ResourceCentre.resource.INumberIntfQuerySV.querySingNumInfo"</span>, param);
+    String islucky= (String) result1.getDataset(<span class="hljs-string">"DATAS"</span>).get(<span class="hljs-number">0</span>, <span class="hljs-string">"BEAUTIFUAL_TAG"</span>);
+    <span class="hljs-comment">// ... 记录日志</span>
+    retInfo.put(<span class="hljs-string">"ISLUCKY"</span>, islucky);
+    setAjax(retInfo);
+}
+</div></code></pre>
+<p><code>onTradeSubmit</code> 中<strong>未校验</strong>吉祥号码验证码状态：</p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onTradeSubmit</span><span class="hljs-params">(IRequestCycle cycle)</span> <span class="hljs-keyword">throws</span> Exception
+</span>{
+    IData param = <span class="hljs-keyword">this</span>.getData();
+    <span class="hljs-comment">// ... 无任何吉祥号验证码校验逻辑</span>
+    result = <span class="hljs-keyword">this</span>.call(<span class="hljs-string">"OrderCentre.person.INpSubscriberOpenOperateSV.createNpSubscriber"</span>, param);
+    setAjax(result);
+}
+</div></code></pre>
+<p><strong>漏洞成因分析：</strong></p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant Attacker as 恶意操作员
+    participant FE as 前端JS
+    participant API as NpSubscriberOpen.onTradeSubmit
+    participant SV as createNpSubscriber
+    participant DB as 数据库
+    
+    Note over Attacker,DB: 漏洞利用流程 - 绕过吉祥号码验证码
+    Attacker->>FE: 输入吉祥号码
+    FE->>API: initIMPOWER(ACCESS_NUM)
+    API-->>FE: ISLUCKY=1 (是吉祥号)
+    Note over FE: 前端显示验证码区域
+    Note over Attacker: 不输入验证码，直接修改JS
+    Attacker->>FE: yzmValidFlag = 0 (前端变量)
+    Attacker->>FE: 点击提交
+    FE->>API: onTradeSubmit(完整表单数据)
+    Note over API: 未校验验证码状态
+    API->>SV: createNpSubscriber
+    SV->>DB: INSERT 用户/账户/订购
+    DB-->>SV: 成功
+    SV-->>API: 开户成功
+    API-->>Attacker: 吉祥号码开户完成(未授权)
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>登录系统，进入携转用户开户页面</li>
+<li>输入一个吉祥号码（触发 ISLUCKY=1）</li>
+<li>不输入值班长工号和验证码</li>
+<li>打开浏览器开发者工具 Console</li>
+<li>执行 <code>yzmValidFlag = 0</code> 修改前端校验标志</li>
+<li>填写其他必填信息，点击提交</li>
+<li>观察是否成功开户</li>
+</ol>
+<p><strong>预期结果：</strong> 吉祥号码必须通过值班长验证码校验才能提交开户</p>
+<p><strong>实际结果：</strong> 前端校验可被绕过，后端未做二次校验，吉祥号码无需授权即可开户</p>
+<p><strong>验证请求示例：</strong></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">POST</span> <span class="hljs-string">/person/cs/npsubscriberopen/NpSubscriberOpen.app?service=listener/onTradeSubmit</span> HTTP/1.1
+<span class="hljs-attribute">Host</span>: crm.example.com
+<span class="hljs-attribute">Cookie</span>: JSESSIONID=xxx
+<span class="hljs-attribute">Content-Type</span>: application/x-www-form-urlencoded
+
+<span class="dts">ACCESS_NUM=<span class="hljs-number">13888888888</span><span class="hljs-variable">&amp;</span>IDEN_NR=<span class="hljs-number">530102199001011234</span><span class="hljs-variable">&amp;</span>PARTY_NAME=张三<span class="hljs-variable">&amp;</span>SELECTED_OFFER_VALUE=[{<span class="hljs-string">"OFFER_ID"</span>:<span class="hljs-string">"100001"</span>}]&amp;...
+<span class="hljs-meta"># 注意：请求中无任何验证码相关参数，后端也未校验</span>
+</span></div></code></pre>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 在 <code>onTradeSubmit</code> 中增加吉祥号码校验逻辑：查询号码是否为吉祥号，若是则校验验证码状态（从数据库或缓存中读取 <code>smsValidFlag</code>）</li>
+<li><strong>代码层面：</strong> 验证码校验结果应存储在服务端（Session/Redis），而非前端 JS 变量</li>
+<li><strong>架构层面：</strong> 将吉祥号码授权作为独立的前置审批流程，审批通过后才允许进入开户提交环节</li>
+</ul>
+<hr>
+<h3 id="24-%E6%8F%90%E4%BA%A4%E5%BC%80%E6%88%B7%E6%B5%81%E7%A8%8B---npverify%E8%AE%B0%E5%BD%95%E5%88%A0%E9%99%A4%E4%B8%8E%E5%BC%80%E6%88%B7%E6%93%8D%E4%BD%9C%E9%9D%9E%E5%8E%9F%E5%AD%90%E6%80%A7">2.4 提交开户流程 - NP_VERIFY记录删除与开户操作非原子性</h3>
+<p><strong>漏洞类型：</strong> 业务流程绕过/状态机异常</p>
+<p><strong>风险等级：</strong> 高危</p>
+<p><strong>漏洞描述：</strong>
+在 <code>CreateNpDistrictVerb.run()</code> 中，NP_VERIFY（携入申请审核）记录在开户流程<strong>中间阶段</strong>被物理删除。如果后续步骤（资源选占、账户创建等）失败，NP_VERIFY 记录已被删除但开户未完成，导致该携入号码无法再次办理开户（查询不到审核记录），形成业务死锁。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>CreateNpDistrictVerb.java:66-73</code></p>
+<pre class="hljs"><code><div><span class="hljs-comment">//物理删除NP_VERIFY</span>
+InteractionDatabus databus = InteractionDatabus.getDatabus();
+<span class="hljs-keyword">int</span> submitType = databus.getSubmitType();
+String businessSceneType = databus.getFirstRequest().getString(<span class="hljs-string">"BUSINESS_SCENE_TYPE"</span>,<span class="hljs-string">""</span>);
+<span class="hljs-keyword">if</span>(!<span class="hljs-string">"CHBN_ORDER"</span>.equals(businessSceneType) || submitType != SubmitTypeConst.PRE_CHECK) {
+    IOmNpVerifyOprateSV omNpVerifyOprateSV = (IOmNpVerifyOprateSV) ServiceFactory.getService(IOmNpVerifyOprateSV<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+    npVerifyInfo.delete();
+    omNpVerifyOprateSV.delData(npVerifyInfo);
+}
+
+ec.add(sca,nde);
+</div></code></pre>
+<p>同时 <code>NpSubscriberOpenSVC.java:474-491</code> 中也存在类似的直接 SQL 删除：</p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">dealOmNpVerify</span><span class="hljs-params">(DataContainer[] auditDcs)</span> <span class="hljs-keyword">throws</span> Exception </span>{
+    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=<span class="hljs-number">0</span>;i&lt;auditDcs.length; i++){
+        DataContainer value = auditDcs[i];
+        String np_very_id = value.getAsString(<span class="hljs-string">"NP_VERIFY_ID"</span>);
+        <span class="hljs-comment">// ... 保存到历史表</span>
+        <span class="hljs-keyword">int</span> num = insv.saveOmNpDistrict(value);
+        <span class="hljs-keyword">if</span>(num == <span class="hljs-number">0</span>){
+            <span class="hljs-comment">//清除掉审核数据表中的数据记录</span>
+            String connName = <span class="hljs-string">"JOUR"</span> + CenterFactory.getCenterInfo().getCenter();
+            String sql = <span class="hljs-string">" DELETE FROM OM_NP_VERIFY WHERE NP_VERIFY_ID = :NP_VERIFY_ID "</span>;
+            Map&lt;String,String&gt; param = <span class="hljs-keyword">new</span> HashMap&lt;String,String&gt;();
+            param.put(<span class="hljs-string">"NP_VERIFY_ID"</span>, np_very_id);
+            ExecuteSqlUtil.execute(connName, sql, param);
+        }
+    }
+}
+</div></code></pre>
+<p><strong>漏洞成因分析：</strong></p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant User as 操作员
+    participant API as onTradeSubmit
+    participant Verb as CreateNpDistrictVerb
+    participant Modifier as NpResOccupyModifier
+    participant DB as 数据库
+    
+    Note over User,DB: 漏洞利用流程 - 非原子删除导致业务死锁
+    User->>API: 提交开户
+    API->>Verb: run() - 创建携号信息
+    Verb->>DB: DELETE FROM OM_NP_VERIFY (物理删除)
+    DB-->>Verb: 删除成功
+    Verb->>Modifier: 继续后续流程
+    Modifier->>DB: 选占号码资源
+    DB-->>Modifier: 资源不足/选占失败
+    Note over Modifier: 异常抛出，流程中断
+    Note over DB: NP_VERIFY已删除，开户未完成
+    Note over User: 再次尝试为该号码开户
+    User->>API: checkAccessNum(同一号码)
+    API->>DB: SELECT OM_NP_VERIFY
+    DB-->>API: 无记录 (flag=1)
+    API-->>User: "不存在携入申请审核记录"
+    Note over User: 业务死锁 - 无法再次开户
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>准备一个携入号码，确保其 OM_NP_VERIFY 表中有审核通过的记录</li>
+<li>登录系统，进入携转用户开户页面</li>
+<li>完成携入号码校验、SIM卡校验、套餐选择</li>
+<li>点击提交开户</li>
+<li>在 <code>CreateNpDistrictVerb</code> 删除 NP_VERIFY 记录后、开户完成前，模拟资源选占失败（如 SIM 卡资源不足）</li>
+<li>观察开户失败后，再次尝试为该号码办理开户</li>
+</ol>
+<p><strong>预期结果：</strong> 开户失败时应回滚 NP_VERIFY 记录删除操作，或将其标记为&quot;处理中&quot;而非物理删除</p>
+<p><strong>实际结果：</strong> NP_VERIFY 记录被提前删除，开户失败后无法恢复，号码无法再次办理</p>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 将 NP_VERIFY 记录的删除操作移至整个开户流程的最后一步（所有资源选占、数据写入成功后）</li>
+<li><strong>代码层面：</strong> 使用状态标记替代物理删除：<code>UPDATE OM_NP_VERIFY SET STATUS = 'USED' WHERE NP_VERIFY_ID = ?</code></li>
+<li><strong>代码层面：</strong> 在事务回滚逻辑中增加 NP_VERIFY 记录恢复机制</li>
+<li><strong>架构层面：</strong> 整个开户流程应包裹在数据库事务中，确保原子性</li>
+</ul>
+<hr>
+<h3 id="25-%E5%A5%97%E9%A4%90%E5%92%8C%E6%B4%BB%E5%8A%A8%E9%80%89%E6%8B%A9%E6%B5%81%E7%A8%8B---%E8%90%A5%E9%94%80%E6%B4%BB%E5%8A%A8%E7%B1%BB%E5%9E%8B02%E6%9D%83%E9%99%90%E6%A0%A1%E9%AA%8C%E5%8F%AF%E8%A2%AB%E7%BB%95%E8%BF%87">2.5 套餐和活动选择流程 - 营销活动类型02权限校验可被绕过</h3>
+<p><strong>漏洞类型：</strong> 权限与访问控制/权限提升路径</p>
+<p><strong>风险等级：</strong> 中危</p>
+<p><strong>漏洞描述：</strong>
+<code>NPOPENTAKEACTIVE</code> 权限用于控制操作员是否可以受理携号入网营销活动（类型02的 offer）。但在 <code>NpSubscriberOpenSVC</code> 中，当 <code>OPEN_TYPE=11</code>（携号副卡开户）时，权限校验被完全绕过（<code>isNpGiftOpen</code> 标记），任何操作员都可以为携号副卡添加营销活动。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>NpSubscriberOpenSVC.java:230-310</code></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">boolean</span> npOpenTakeActiveGlag = PrivCheck.checkDomPermission(opId, <span class="hljs-string">"NPOPENTAKEACTIVE"</span>);
+<span class="hljs-comment">// 是否携号副卡开户</span>
+<span class="hljs-keyword">boolean</span> isNpGiftOpen = StringUtils.equals(<span class="hljs-string">"11"</span>, request.getString(<span class="hljs-string">"OPEN_TYPE"</span>));
+
+<span class="hljs-keyword">for</span>(TreePart offer : offers)
+{
+    String offerId = offer.getString(<span class="hljs-string">"OFFER_ID"</span>);
+    OfferCfg cfg = <span class="hljs-keyword">new</span> OfferCfg(offerId);
+    <span class="hljs-comment">// ...</span>
+    }<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(<span class="hljs-string">"02"</span>.equals(cfg.getType())){
+        <span class="hljs-comment">//if(PrivCheck.checkDomPermission(opId, "NPOPENTAKEACTIVE"))</span>
+        <span class="hljs-keyword">if</span>(npOpenTakeActiveGlag || isNpGiftOpen)  <span class="hljs-comment">// 副卡开户绕过权限</span>
+        {
+            campnOffer = offer;
+        }
+        <span class="hljs-keyword">else</span> {
+            CSBizException.bizerr(OrderException.CRM_ORDER_715,<span class="hljs-string">"当前工号没有受理携号入网政策的特权，不能办理入网活动"</span>);
+        }
+    }
+}
+</div></code></pre>
+<p>同时前端 <code>NpSubscriberOpen.java:143-151</code> 也存在同样的绕过：</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">if</span>(PrivCheck.checkDomPermission(<span class="hljs-keyword">this</span>.getVisit().getStaffId(), <span class="hljs-string">"NPOPENTAKEACTIVE"</span>))
+{
+    <span class="hljs-keyword">if</span>(StringUtils.isNotBlank(param.getString(<span class="hljs-string">"SELECTED_ACTIVE_VALUE"</span>)) &amp;&amp; !<span class="hljs-string">"undefined"</span>.equals(param.getString(<span class="hljs-string">"SELECTED_ACTIVE_VALUE"</span>))){
+        param.put(<span class="hljs-string">"IS_ACTIVE_OPEN"</span>,<span class="hljs-string">"1"</span>);<span class="hljs-comment">//开户营销标记</span>
+        IDataset active = <span class="hljs-keyword">new</span> DatasetList(param.getString(<span class="hljs-string">"SELECTED_ACTIVE_VALUE"</span>));
+        offerList.addAll(active);
+    }
+}
+</div></code></pre>
+<p><strong>漏洞成因分析：</strong></p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant Attacker as 低权限操作员
+    participant FE as 前端
+    participant API as onTradeSubmit
+    participant SV as NpSubscriberOpenSVC
+    participant DB as 数据库
+    
+    Note over Attacker,DB: 漏洞利用流程 - 通过副卡开户绕过营销权限
+    Attacker->>FE: 构造请求 OPEN_TYPE=11
+    FE->>API: onTradeSubmit(OPEN_TYPE=11, SELECTED_ACTIVE_VALUE)
+    Note over API: 权限校验: PrivCheck.checkDomPermission -> false
+    Note over API: 但 SELECTED_ACTIVE_VALUE 仍被传入
+    API->>SV: createNpSubscriber
+    Note over SV: isNpGiftOpen = true (OPEN_TYPE=11)
+    Note over SV: 权限校验被绕过: npOpenTakeActiveGlag || isNpGiftOpen = true
+    SV->>DB: INSERT 营销活动订购记录
+    DB-->>SV: 成功
+    SV-->>API: 开户成功(含营销活动)
+    API-->>Attacker: 营销活动添加成功
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>使用一个没有 <code>NPOPENTAKEACTIVE</code> 权限的普通操作员账号登录</li>
+<li>正常进入携转用户开户页面</li>
+<li>通过开发者工具修改请求参数，将 <code>OPEN_TYPE</code> 修改为 <code>11</code></li>
+<li>在 <code>SELECTED_ACTIVE_VALUE</code> 中添加营销活动 offer（类型02）</li>
+<li>提交开户请求</li>
+<li>观察营销活动是否被成功添加</li>
+</ol>
+<p><strong>预期结果：</strong> 无权限的操作员即使通过副卡开户类型也不能添加营销活动</p>
+<p><strong>实际结果：</strong> OPEN_TYPE=11 时权限校验被完全绕过，可添加任意营销活动</p>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 移除 <code>isNpGiftOpen</code> 对权限校验的绕过，副卡开户也应校验 <code>NPOPENTAKEACTIVE</code> 权限</li>
+<li><strong>代码层面：</strong> 若副卡开户确实需要特殊处理，应使用独立的权限标识（如 <code>NPGIFTOPEN_ACTIVE</code>）而非完全绕过</li>
+<li><strong>代码层面：</strong> 前端 <code>onTradeSubmit</code> 和 <code>sendEpaperPre</code> 中也应同步修复权限校验逻辑</li>
+</ul>
+<hr>
+<h3 id="26-%E6%8F%90%E4%BA%A4%E5%BC%80%E6%88%B7%E6%B5%81%E7%A8%8B---%E8%AF%81%E4%BB%B6%E9%A2%84%E5%8D%A0%E9%87%8A%E6%94%BE%E6%9D%A1%E4%BB%B6%E4%B8%8D%E5%AE%8C%E6%95%B4">2.6 提交开户流程 - 证件预占释放条件不完整</h3>
+<p><strong>漏洞类型：</strong> 业务流程绕过/状态机异常</p>
+<p><strong>风险等级：</strong> 中危</p>
+<p><strong>漏洞描述：</strong>
+在 <code>onTradeSubmit</code> 的异常处理中，仅当 <code>hasError=true</code> 时才释放证件预占。但 <code>hasError</code> 的判定条件为 <code>!StringUtil.contains(eMsg,&quot;证件号码被预占&quot;)</code>，即当异常消息包含&quot;证件号码被预占&quot;时 <code>hasError=false</code>，不会释放预占。然而此时开户实际上失败了，证件预占状态未被清理，导致该证件无法再次办理业务。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>NpSubscriberOpen.java:157-183</code></p>
+<pre class="hljs"><code><div>IData result  = <span class="hljs-keyword">new</span> DataMap();
+<span class="hljs-keyword">boolean</span> hasError = <span class="hljs-keyword">false</span>;
+<span class="hljs-keyword">try</span>{
+    result  =<span class="hljs-keyword">this</span>.call(<span class="hljs-string">"OrderCentre.person.INpSubscriberOpenOperateSV.createNpSubscriber"</span>, param);
+}<span class="hljs-keyword">catch</span>(Exception e) {
+    String eMsg = e.getMessage();
+    <span class="hljs-keyword">if</span>(!StringUtil.contains(eMsg,<span class="hljs-string">"证件号码被预占"</span>)){
+        hasError=<span class="hljs-keyword">true</span>;
+    }
+    <span class="hljs-keyword">throw</span> e;
+}<span class="hljs-keyword">finally</span>{
+    <span class="hljs-keyword">if</span>(hasError){
+      <span class="hljs-comment">//证件解预占</span>
+        IData input = <span class="hljs-keyword">new</span> DataMap();
+        input.put(<span class="hljs-string">"CUST_NAME"</span>, param.getString(<span class="hljs-string">"PARTY_NAME"</span>,param.getString(<span class="hljs-string">"UP_NAME"</span>,<span class="hljs-string">""</span>)));
+        String idenTypeID=param.getString(<span class="hljs-string">"IDEN_TYPE_ID"</span>);
+        <span class="hljs-keyword">if</span>(StringUtils.isBlank(idenTypeID))
+        {
+            idenTypeID=param.getString(<span class="hljs-string">"IDEN_TYPE_CODE"</span>,<span class="hljs-string">"10000000"</span>);<span class="hljs-comment">//默认为身份证</span>
+        }
+        input.put(<span class="hljs-string">"IDEN_TYPE_ID"</span>, idenTypeID);
+        input.put(<span class="hljs-string">"IDEN_NR"</span>, param.getString(<span class="hljs-string">"IDEN_NR"</span>));
+        input.put(<span class="hljs-string">"CAMP_ON"</span>, <span class="hljs-string">"02"</span>);
+        <span class="hljs-keyword">this</span>.call(<span class="hljs-string">"CustomerCentre.custmgr.ICCOutOperateSV.cardCampOn"</span>, input);
+    }
+}
+</div></code></pre>
+<p><strong>漏洞成因分析：</strong></p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant User as 操作员
+    participant API as onTradeSubmit
+    participant SV as createNpSubscriber
+    participant DB as 数据库
+    
+    Note over User,DB: 漏洞利用流程 - 证件预占未释放
+    User->>API: 提交开户
+    API->>SV: createNpSubscriber
+    SV->>DB: 证件预占检查
+    DB-->>SV: 证件已被预占(其他工单占用)
+    SV-->>API: 抛出异常 "证件号码被预占"
+    Note over API: eMsg 包含 "证件号码被预占"
+    Note over API: hasError = false (不释放预占)
+    Note over API: 但开户确实失败了
+    API-->>User: 开户失败: 证件号码被预占
+    Note over User: 证件持续被预占，无法再次办理
+    Note over User: 需等待预占超时或管理员手动释放
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>操作员A为用户张三办理开户，提交后系统对证件进行预占</li>
+<li>操作员B尝试用同一证件为张三办理另一笔业务</li>
+<li>系统返回&quot;证件号码被预占&quot;错误</li>
+<li>操作员A的开户流程因其他原因失败（如资源不足）</li>
+<li>检查证件预占状态，发现仍未释放</li>
+</ol>
+<p><strong>预期结果：</strong> 无论何种原因导致开户失败，都应释放证件预占</p>
+<p><strong>实际结果：</strong> 当异常消息包含&quot;证件号码被预占&quot;时，预占状态不被释放</p>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 修改异常处理逻辑，所有开户失败场景都应释放证件预占：</li>
+</ul>
+<pre class="hljs"><code><div>}<span class="hljs-keyword">finally</span>{
+    <span class="hljs-comment">// 无论何种异常，只要开户失败就释放预占</span>
+    <span class="hljs-keyword">if</span>(hasError || result == <span class="hljs-keyword">null</span> || result.isEmpty()){
+        <span class="hljs-comment">// 释放证件预占</span>
+    }
+}
+</div></code></pre>
+<ul>
+<li><strong>代码层面：</strong> 预占应设置自动过期时间，超时后自动释放</li>
+</ul>
+<hr>
+<h3 id="27-%E6%8F%90%E4%BA%A4%E5%BC%80%E6%88%B7%E6%B5%81%E7%A8%8B---%E9%9A%8F%E6%9C%BA%E5%AF%86%E7%A0%81%E5%BC%B1%E9%9A%8F%E6%9C%BA%E6%95%B0%E7%94%9F%E6%88%90">2.7 提交开户流程 - 随机密码弱随机数生成</h3>
+<p><strong>漏洞类型：</strong> 数据校验缺失/数据类型混淆</p>
+<p><strong>风险等级：</strong> 中危</p>
+<p><strong>漏洞描述：</strong>
+当 <code>NEED_PASSWORD=0</code> 时，系统自动生成6位数字随机密码。但使用的是 <code>java.util.Random</code> 而非 <code>java.security.SecureRandom</code>。<code>java.util.Random</code> 是基于线性同余生成器（LCG）的伪随机数生成器，其输出可被预测。攻击者若知道某个时间点生成的密码，可推算出同一时间段内生成的其他密码。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>NpSubscriberOpenSVC.java:408-416</code></p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">private</span> String <span class="hljs-title">getRandomPassword</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>{
+    StringBuilder temp = <span class="hljs-keyword">new</span> StringBuilder();
+    Random rad = <span class="hljs-keyword">new</span> Random();  <span class="hljs-comment">// 使用 java.util.Random，非 SecureRandom</span>
+    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">6</span>;i++) {
+        <span class="hljs-keyword">int</span> a = rad.nextInt(<span class="hljs-number">10</span>);
+        temp.append(a);
+    }
+    <span class="hljs-keyword">return</span> temp.toString();
+}
+</div></code></pre>
+<p><strong>漏洞成因分析：</strong></p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant Attacker as 攻击者
+    participant SV as NpSubscriberOpenSVC
+    participant RNG as java.util.Random
+    participant DB as 用户表
+    
+    Note over Attacker,DB: 漏洞利用流程 - 预测随机密码
+    Attacker->>SV: 创建账户(NEED_PASSWORD=0)
+    SV->>RNG: new Random()
+    RNG-->>SV: 生成种子(基于系统时间)
+    SV->>RNG: nextInt(10) x 6次
+    RNG-->>SV: 返回6位随机数(如 482913)
+    SV->>DB: INSERT 用户(密码=482913)
+    Note over Attacker: 获取到密码 482913 和时间戳
+    Attacker->>Attacker: 反推 Random 种子
+    Attacker->>Attacker: 预测同一时段其他用户的密码
+    Note over Attacker: 可批量预测新生成用户的密码
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>配置系统 <code>NEED_PASSWORD=0</code>（随机密码模式）</li>
+<li>连续创建多个开户，记录每个账户的随机密码和创建时间</li>
+<li>使用 <code>java.util.Random</code> 的种子还原算法，根据已知密码反推种子</li>
+<li>预测同一时间段内其他新生成账户的密码</li>
+<li>使用预测的密码尝试登录验证</li>
+</ol>
+<p><strong>预期结果：</strong> 随机密码应使用密码学安全的随机数生成器，不可被预测</p>
+<p><strong>实际结果：</strong> 使用 <code>java.util.Random</code>，密码可被推算</p>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 将 <code>java.util.Random</code> 替换为 <code>java.security.SecureRandom</code>：</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">private</span> String <span class="hljs-title">getRandomPassword</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>{
+    StringBuilder temp = <span class="hljs-keyword">new</span> StringBuilder();
+    SecureRandom rad = <span class="hljs-keyword">new</span> SecureRandom();
+    <span class="hljs-keyword">for</span>(<span class="hljs-keyword">int</span> i=<span class="hljs-number">0</span>;i&lt;<span class="hljs-number">6</span>;i++) {
+        <span class="hljs-keyword">int</span> a = rad.nextInt(<span class="hljs-number">10</span>);
+        temp.append(a);
+    }
+    <span class="hljs-keyword">return</span> temp.toString();
+}
+</div></code></pre>
+<ul>
+<li><strong>代码层面：</strong> 使用 <code>ThreadLocalRandom.current()</code> 作为替代方案（Java 7+）</li>
+<li><strong>架构层面：</strong> 随机密码应通过短信下发，而非仅存储在系统中</li>
+</ul>
+<hr>
+<h3 id="28-%E7%AD%BE%E8%AE%A2%E5%8D%8F%E8%AE%AE%E6%B5%81%E7%A8%8B---%E5%8D%8F%E8%AE%AE%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E9%9D%9E%E5%B9%82%E7%AD%89%E5%8F%AF%E8%A2%AB%E6%BB%A5%E7%94%A8">2.8 签订协议流程 - 协议生成接口非幂等可被滥用</h3>
+<p><strong>漏洞类型：</strong> 业务流程绕过/参数重放</p>
+<p><strong>风险等级：</strong> 中危</p>
+<p><strong>漏洞描述：</strong>
+<code>sendEpaperPre</code> 接口每次调用都会生成新的 <code>PRE_INTACT_ID</code>（协议流水号），且无调用频率限制。攻击者可重复调用该接口，大量生成无效协议记录，消耗无纸化系统资源，甚至可能通过大量协议请求触发外部无纸化系统的拒绝服务。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>NpSubscriberOpen.java:187-216</code></p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sendEpaperPre</span><span class="hljs-params">(IRequestCycle clcle)</span> <span class="hljs-keyword">throws</span> Exception
+</span>{
+    IData param = <span class="hljs-keyword">this</span>.getData();
+    IData acctInfo = <span class="hljs-keyword">this</span>.getData(<span class="hljs-string">"acctinfo"</span>);
+    param.putAll(acctInfo);
+    IDataset offerList = <span class="hljs-keyword">new</span> DatasetList(param.getString(<span class="hljs-string">"SELECTED_OFFER_VALUE"</span>));
+    <span class="hljs-comment">// ... 组装参数</span>
+    param.put(<span class="hljs-string">"OFFERS"</span>, offerList);
+    param.put(<span class="hljs-string">"ROUTE_CODE"</span>,<span class="hljs-keyword">this</span>.getVisit().getLoginEparchyCode());
+    param.put(<span class="hljs-string">"BUSI_ITEM_CODE"</span>, <span class="hljs-string">"40"</span>);
+
+    IData result = <span class="hljs-keyword">this</span>.call(<span class="hljs-string">"OrderCentre.person.IElecSV.getPreEpaperOper"</span>, param);
+    <span class="hljs-comment">// 每次调用都生成新的 PRE_INTACT_ID</span>
+    <span class="hljs-keyword">if</span>(DataUtil.isNotEmpty(result)){
+        setAjax(result);
+    }
+}
+</div></code></pre>
+<p><strong>漏洞成因分析：</strong></p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant Attacker as 攻击者
+    participant API as sendEpaperPre
+    participant ElecSV as getPreEpaperOper
+    participant Paper as 无纸化系统
+    participant DB as 数据库
+    
+    Note over Attacker,DB: 漏洞利用流程 - 协议接口滥用
+    loop 重复调用(1000次)
+        Attacker->>API: sendEpaperPre(表单数据)
+        API->>ElecSV: getPreEpaperOper
+        ElecSV->>Paper: 生成协议XML
+        Paper-->>ElecSV: PRE_INTACT_ID + XML
+        ElecSV->>DB: INSERT 协议记录
+        ElecSV-->>API: 返回结果
+        API-->>Attacker: 新的 PRE_INTACT_ID
+    end
+    Note over DB: 产生1000条无效协议记录
+    Note over Paper: 无纸化系统资源被大量消耗
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>登录系统，进入携转用户开户页面</li>
+<li>填写基本表单信息（不需要完整填写）</li>
+<li>使用 Burp Intruder 或脚本循环调用 <code>sendEpaperPre</code> 接口</li>
+<li>观察响应中每次返回不同的 <code>PRE_INTACT_ID</code></li>
+<li>检查数据库中协议记录表的增长情况</li>
+</ol>
+<p><strong>预期结果：</strong> 同一用户/号码在短时间内应限制协议生成频率</p>
+<p><strong>实际结果：</strong> 无频率限制，可无限生成协议记录</p>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 增加频率限制：同一 ACCESS_NUM 在 N 分钟内只能生成一次协议</li>
+<li><strong>代码层面：</strong> 在调用 <code>getPreEpaperOper</code> 前检查是否已存在未使用的协议记录</li>
+<li><strong>架构层面：</strong> 引入 API 限流（如令牌桶算法），限制单用户调用频率</li>
+<li><strong>配置层面：</strong> 定期清理未使用的协议记录</li>
+</ul>
+<hr>
+<h3 id="29-%E5%80%BC%E7%8F%AD%E9%95%BF%E9%AA%8C%E8%AF%81%E7%A0%81%E6%B5%81%E7%A8%8B---%E9%AA%8C%E8%AF%81%E7%A0%81%E6%97%A0%E9%A2%91%E7%8E%87%E9%99%90%E5%88%B6%E5%92%8C%E9%87%8D%E8%AF%95%E9%94%81%E5%AE%9A">2.9 值班长验证码流程 - 验证码无频率限制和重试锁定</h3>
+<p><strong>漏洞类型：</strong> 验证码与限流/无操作频率限制</p>
+<p><strong>风险等级：</strong> 中危</p>
+<p><strong>漏洞描述：</strong>
+<code>dealYzm</code> 接口处理值班长验证码的发送和校验，但无任何频率限制。攻击者可：</p>
+<ol>
+<li>对同一值班长工号无限次发送验证码，造成短信轰炸</li>
+<li>对验证码无限次尝试，通过暴力破解获取正确验证码（6位数字验证码仅有100万种组合）</li>
+</ol>
+<p><strong>关键代码片段：</strong></p>
+<p><code>NpSubscriberOpen.java:250-268</code></p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">dealYzm</span><span class="hljs-params">(IRequestCycle cycle)</span> <span class="hljs-keyword">throws</span> Exception
+</span>{
+     IData data = getData();
+     IData result = ServiceCaller.call(<span class="hljs-string">"OrderCentre.person.ISubscriberOpenSV.dealYzm"</span>, data ,cycle.getRequestContext().getRequest());
+     setAjax(result.getDataset(<span class="hljs-string">"DATAS"</span>));
+
+     <span class="hljs-comment">// 审计日志</span>
+     IData cond = <span class="hljs-keyword">new</span> DataMap();
+     cond.put(<span class="hljs-string">"OPERATOR_ID"</span>, <span class="hljs-keyword">this</span>.getVisit().getStaffId());
+     cond.put(<span class="hljs-string">"OPER_MOD"</span>, <span class="hljs-string">"值班长授权"</span>);
+     cond.put(<span class="hljs-string">"OPER_TYPE"</span>, <span class="hljs-string">"CHK"</span>);
+     String msg = <span class="hljs-string">"PRIV_VERIFY[NPOPENTAKEACTIVE:"</span>+PrivCheck.checkDomPermission(<span class="hljs-keyword">this</span>.getVisit().getStaffId(),<span class="hljs-string">"NPOPENTAKEACTIVE"</span>)+<span class="hljs-string">"];"</span>;
+     cond.put(<span class="hljs-string">"OPER_DESC"</span>, msg+<span class="hljs-string">"授权参数："</span>+data.toString());
+     <span class="hljs-keyword">this</span>.call(<span class="hljs-string">"CustomerCentre.common.IOperLogSV.addOperLog"</span>, cond);
+}
+</div></code></pre>
+<p><strong>漏洞成因分析：</strong></p>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant Attacker as 攻击者
+    participant API as dealYzm
+    participant SMS as 短信网关
+    participant DB as 验证码表
+    
+    Note over Attacker,DB: 漏洞利用流程 - 短信轰炸 + 验证码爆破
+    
+    rect rgb(255, 200, 200)
+        Note over Attacker,SMS: 攻击1: 短信轰炸
+        loop 1000次
+            Attacker->>API: dealYzm(ACTION=SEND_YZM, MANAGER_STAFF=目标工号)
+            API->>SMS: 发送验证码短信
+            SMS-->>Attacker: 目标手机收到骚扰短信
+        end
+    end
+    
+    rect rgb(200, 200, 255)
+        Note over Attacker,DB: 攻击2: 验证码暴力破解
+        loop 1000000次(000000-999999)
+            Attacker->>API: dealYzm(ACTION=VALID_YZM, SMS_NUMBER=猜测值)
+            API->>DB: 校验验证码
+            DB-->>API: 匹配/不匹配
+            API-->>Attacker: 校验结果
+        end
+    end
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>登录系统，进入携转用户开户页面</li>
+<li>使用 Burp Intruder 对 <code>dealYzm</code> 接口进行短信轰炸测试：
+<ul>
+<li>固定 <code>MANAGER_STAFF</code> 为目标值班长工号</li>
+<li>设置 <code>ACTION=SEND_YZM</code></li>
+<li>循环发送100次</li>
+</ul>
+</li>
+<li>观察目标值班长手机是否收到大量验证码短信</li>
+<li>对验证码校验接口进行暴力破解测试：
+<ul>
+<li>固定 <code>ACTION=VALID_YZM</code></li>
+<li>遍历 <code>SMS_NUMBER</code> 从 000000 到 999999</li>
+<li>观察是否能在合理时间内破解验证码</li>
+</ul>
+</li>
+</ol>
+<p><strong>预期结果：</strong> 验证码发送应有频率限制（如每分钟1次、每天10次），校验失败应有锁定机制（如连续5次失败锁定15分钟）</p>
+<p><strong>实际结果：</strong> 无频率限制，无失败锁定，可短信轰炸和暴力破解</p>
+<p><strong>验证请求示例：</strong></p>
+<pre class="hljs"><code><div># 短信轰炸
+<span class="hljs-keyword">POST</span> <span class="hljs-string">/person/cs/npsubscriberopen/NpSubscriberOpen.app?service=listener/dealYzm</span> HTTP/1.1
+<span class="hljs-attribute">Host</span>: crm.example.com
+<span class="hljs-attribute">Cookie</span>: JSESSIONID=xxx
+<span class="hljs-attribute">Content-Type</span>: application/x-www-form-urlencoded
+
+<span class="dts">MANAGER_STAFF=<span class="hljs-number">12345678</span><span class="hljs-variable">&amp;</span>ACCESS_NUM=<span class="hljs-number">13800138000</span><span class="hljs-variable">&amp;</span>ACTION=SEND_YZM
+
+<span class="hljs-meta"># 验证码爆破</span>
+POST <span class="hljs-meta-keyword">/person/</span>cs<span class="hljs-meta-keyword">/npsubscriberopen/</span>NpSubscriberOpen.app?service=listener/dealYzm HTTP/<span class="hljs-number">1.1</span>
+<span class="hljs-symbol">Host:</span> crm.example.com
+<span class="hljs-symbol">Cookie:</span> JSESSIONID=xxx
+Content-Type: application/x-www-form-urlencoded
+
+SMS_NUMBER=<span class="hljs-number">000000</span><span class="hljs-variable">&amp;</span>MANAGER_STAFF=<span class="hljs-number">12345678</span><span class="hljs-variable">&amp;</span>ACCESS_NUM=<span class="hljs-number">13800138000</span><span class="hljs-variable">&amp;</span>ACTION=VALID_YZM
+</span></div></code></pre>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 验证码发送频率限制：同一值班长工号每分钟最多发送1次，每天最多10次</li>
+<li><strong>代码层面：</strong> 验证码校验失败锁定：连续5次校验失败，锁定该工号15分钟</li>
+<li><strong>代码层面：</strong> 验证码有效期限制：验证码生成后5分钟内有效，过期失效</li>
+<li><strong>架构层面：</strong> 引入短信网关级别的频率限制和防轰炸策略</li>
+<li><strong>配置层面：</strong> 记录所有验证码发送和校验操作到审计日志，异常行为触发告警</li>
+</ul>
+<hr>
+<h3 id="210-%E6%90%BA%E5%85%A5%E5%8F%B7%E7%A0%81%E6%A0%A1%E9%AA%8C%E6%B5%81%E7%A8%8B---%E4%B8%80%E8%AF%81%E5%A4%9A%E5%90%8D%E6%A3%80%E6%9F%A5%E4%BB%85%E8%A6%86%E7%9B%96%E8%AF%81%E4%BB%B6%E7%B1%BB%E5%9E%8B0">2.10 携入号码校验流程 - 一证多名检查仅覆盖证件类型0</h3>
+<p><strong>漏洞类型：</strong> 数据校验缺失/业务规则绕过</p>
+<p><strong>风险等级：</strong> 低危</p>
+<p><strong>漏洞描述：</strong>
+一证多名（一个证件号码对应多个姓名）检查仅在 <code>IDEN_TYPE_CODE=0</code> 或 <code>IDEN_TYPE_ID=10000000</code>（身份证）时执行。攻击者可通过使用其他证件类型（如护照、军官证等）绕过一证多名检查，用同一证件号码但以不同姓名注册多个账户。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>NpSubscriberOpenSVC.java:185-197</code></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">if</span>(StringUtils.equals(<span class="hljs-keyword">this</span>.getRequest().getString(<span class="hljs-string">"IDEN_TYPE_CODE"</span>), <span class="hljs-string">"0"</span>) || 
+   StringUtils.equals(<span class="hljs-keyword">this</span>.getRequest().getString(<span class="hljs-string">"IDEN_TYPE_ID"</span>), <span class="hljs-string">"10000000"</span>)){
+    ServiceRequest  requestQ=<span class="hljs-keyword">new</span> ServiceRequest();
+    requestQ.setValue(<span class="hljs-string">"IDEN_TYPE_ID"</span>, request.getString(<span class="hljs-string">"IDEN_TYPE_ID"</span>));
+    requestQ.setValue(<span class="hljs-string">"IDEN_TYPE_CODE"</span>, request.getString(<span class="hljs-string">"IDEN_TYPE_CODE"</span>));
+    requestQ.setValue(<span class="hljs-string">"IDEN_NR"</span>,request.getString(<span class="hljs-string">"IDEN_NR"</span>));
+    requestQ.setValue(<span class="hljs-string">"PARTY_NAME"</span>,request.getString(<span class="hljs-string">"PARTY_NAME"</span>));
+    ServiceResponse info = CsfCaller.call(<span class="hljs-string">"OrderCentre.person.ICustInfoOperateSV.checkIsOneCardManyNames"</span>,requestQ);
+    String psmanyNamesflag = info.getBody().getString(<span class="hljs-string">"PSMANY_NAMESFLAG"</span>);
+    String detail = info.getBody().getString(<span class="hljs-string">"PSMANY_DETAIL"</span>);
+    <span class="hljs-keyword">if</span> (StringUtils.equals(<span class="hljs-string">"1"</span>, psmanyNamesflag)) {
+        CSBizException.bizerr(CustomerException.CRM_CUSTOMER_35, <span class="hljs-string">"该证件号码存在一证多名..."</span>);
+    }
+}
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>使用身份证（IDEN_TYPE_CODE=0）以姓名&quot;张三&quot;注册一个账户</li>
+<li>使用护照（IDEN_TYPE_CODE=其他值）以相同证件号码但不同姓名&quot;李四&quot;尝试注册</li>
+<li>观察是否绕过一证多名检查</li>
+</ol>
+<p><strong>预期结果：</strong> 所有一证多名检查应覆盖所有证件类型</p>
+<p><strong>实际结果：</strong> 仅身份证类型执行一证多名检查</p>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 移除证件类型限制，对所有证件类型执行一证多名检查</li>
+<li><strong>代码层面：</strong> 在 <code>checkIsOneCardManyNames</code> 服务中增加跨证件类型的关联检查</li>
+</ul>
+<hr>
+<h3 id="211-%E5%90%89%E7%A5%A5%E5%8F%B7%E7%A0%81%E6%9D%83%E9%99%90%E6%A0%A1%E9%AA%8C%E6%B5%81%E7%A8%8B---%E5%90%89%E7%A5%A5%E5%8F%B7%E6%93%8D%E4%BD%9C%E6%97%A5%E5%BF%97%E5%BC%82%E5%B8%B8%E8%A2%AB%E9%9D%99%E9%BB%98%E5%90%9E%E6%B2%A1">2.11 吉祥号码权限校验流程 - 吉祥号操作日志异常被静默吞没</h3>
+<p><strong>漏洞类型：</strong> 信息泄露/审计缺失</p>
+<p><strong>风险等级：</strong> 低危</p>
+<p><strong>漏洞描述：</strong>
+<code>initIMPOWER</code> 方法中记录吉祥号操作日志的代码被包裹在空的 try-catch 块中，所有异常都被静默吞没。这意味着吉祥号码的操作日志可能记录失败而无人知晓，导致审计数据不完整，无法追溯吉祥号码的开户操作。</p>
+<p><strong>关键代码片段：</strong></p>
+<p><code>NpSubscriberOpen.java:282-291</code></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">if</span>(StringUtils.equals(<span class="hljs-string">"1"</span>, islucky)){
+        IData log = <span class="hljs-keyword">new</span> DataMap();
+        log.put(<span class="hljs-string">"ACCESS_NUM"</span>, param.get(<span class="hljs-string">"ACCESS_NUM"</span>));
+        log.put(<span class="hljs-string">"BUSI_ITEM_CODE"</span>, <span class="hljs-keyword">this</span>.getBusiCode());
+        log.put(<span class="hljs-string">"LEVEL"</span>, result1.getDataset(<span class="hljs-string">"DATAS"</span>).get(<span class="hljs-number">0</span>, <span class="hljs-string">"LEVEL_ID"</span>).toString());
+        <span class="hljs-keyword">this</span>.call(<span class="hljs-string">"BusiFrame.priv.ISecPrivOperSV.insertLuckyNumBusiLog"</span>, log);
+    }
+} <span class="hljs-keyword">catch</span> (Exception e) {
+    <span class="hljs-comment">// 空catch块 - 异常被静默吞没</span>
+}
+</div></code></pre>
+<p><strong>复现步骤：</strong></p>
+<ol>
+<li>模拟 <code>insertLuckyNumBusiLog</code> 服务不可用（如数据库连接失败）</li>
+<li>输入吉祥号码触发 <code>initIMPOWER</code></li>
+<li>检查吉祥号操作日志表，确认日志未记录</li>
+<li>检查系统日志，确认无任何错误信息</li>
+</ol>
+<p><strong>预期结果：</strong> 日志记录失败时应记录错误日志并告警</p>
+<p><strong>实际结果：</strong> 异常被静默吞没，无任何错误记录</p>
+<p><strong>修复建议：</strong></p>
+<ul>
+<li><strong>代码层面：</strong> 在 catch 块中记录错误日志：</li>
+</ul>
+<pre class="hljs"><code><div>} <span class="hljs-keyword">catch</span> (Exception e) {
+    logger.error(<span class="hljs-string">"吉祥号码操作日志记录失败, ACCESS_NUM="</span> + param.get(<span class="hljs-string">"ACCESS_NUM"</span>), e);
+}
+</div></code></pre>
+<ul>
+<li><strong>架构层面：</strong> 日志记录应采用异步方式，避免影响主业务流程</li>
+</ul>
+<hr>
+<h2 id="%E4%B8%89%E6%BC%8F%E6%B4%9E%E7%BB%9F%E8%AE%A1">三、漏洞统计</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">风险等级</th>
+<th style="text-align:left">数量</th>
+<th style="text-align:left">漏洞编号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">高危</td>
+<td style="text-align:left">4</td>
+<td style="text-align:left">VUL-001, VUL-002, VUL-003, VUL-004</td>
+</tr>
+<tr>
+<td style="text-align:left">中危</td>
+<td style="text-align:left">5</td>
+<td style="text-align:left">VUL-005, VUL-006, VUL-007, VUL-008, VUL-009</td>
+</tr>
+<tr>
+<td style="text-align:left">低危</td>
+<td style="text-align:left">2</td>
+<td style="text-align:left">VUL-010, VUL-011</td>
+</tr>
+</tbody>
+</table>
+<h2 id="%E5%9B%9B%E4%BF%AE%E5%A4%8D%E4%BC%98%E5%85%88%E7%BA%A7%E5%BB%BA%E8%AE%AE">四、修复优先级建议</h2>
+<h3 id="p0---%E7%AB%8B%E5%8D%B3%E4%BF%AE%E5%A4%8D%E9%AB%98%E5%8D%B1">P0 - 立即修复（高危）</h3>
+<ol>
+<li><strong>VUL-001 重复提交</strong>：增加幂等性控制，防止重复开户</li>
+<li><strong>VUL-003 吉祥号码验证码绕过</strong>：后端增加验证码状态校验</li>
+<li><strong>VUL-004 NP_VERIFY非原子删除</strong>：确保删除操作在事务最后执行</li>
+</ol>
+<h3 id="p1---%E4%B8%80%E5%91%A8%E5%86%85%E4%BF%AE%E5%A4%8D%E9%AB%98%E5%8D%B1%E4%B8%AD%E5%8D%B1">P1 - 一周内修复（高危/中危）</h3>
+<ol start="4">
+<li><strong>VUL-002 归属地硬编码绕过</strong>：移除IBOSS000硬编码豁免</li>
+<li><strong>VUL-005 营销权限绕过</strong>：修复副卡开户权限校验</li>
+<li><strong>VUL-009 验证码无限流</strong>：增加发送频率和失败锁定</li>
+</ol>
+<h3 id="p2---%E4%B8%A4%E5%91%A8%E5%86%85%E4%BF%AE%E5%A4%8D%E4%B8%AD%E5%8D%B1%E4%BD%8E%E5%8D%B1">P2 - 两周内修复（中危/低危）</h3>
+<ol start="7">
+<li><strong>VUL-006 证件预占释放</strong>：完善异常处理中的预占释放</li>
+<li><strong>VUL-007 弱随机数</strong>：替换为SecureRandom</li>
+<li><strong>VUL-008 协议接口滥用</strong>：增加频率限制</li>
+<li><strong>VUL-010 一证多名检查</strong>：覆盖所有证件类型</li>
+<li><strong>VUL-011 日志异常吞没</strong>：增加错误日志记录</li>
+</ol>
+<h2 id="%E4%BA%94%E4%BF%A1%E6%81%AF%E4%B8%8D%E8%B6%B3%E9%9C%80%E8%A1%A5%E5%85%85">五、[信息不足，需补充]</h2>
+<p>以下方面因代码或文档信息不足，无法进行完整分析，建议补充：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>需要补充的信息</th>
+<th>可能影响的安全分析</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createNpSubscriber</code> 服务实现</td>
+<td>完整的开户核心逻辑代码，包括数据库事务边界、唯一约束定义</td>
+<td>无法确认重复提交是否会被数据库约束拦截</td>
+</tr>
+<tr>
+<td><code>ResCall.checkNpSimCard</code> 实现</td>
+<td>SIM卡选占的具体实现，包括并发控制机制</td>
+<td>无法确认SIM卡并发选占是否存在竞态条件</td>
+</tr>
+<tr>
+<td><code>ISubscriberOpenSV.dealYzm</code> 实现</td>
+<td>验证码生成、存储、校验的完整逻辑</td>
+<td>无法确认验证码的加密存储方式和校验逻辑</td>
+</tr>
+<tr>
+<td>数据库表结构DDL</td>
+<td>用户表、账户表、携转关系表的完整定义，包括唯一约束和索引</td>
+<td>无法确认数据库层面的防护机制</td>
+</tr>
+<tr>
+<td>前端 JS 完整代码</td>
+<td><code>npsubscriberopen.js</code> 和 <code>NpSubscriberOpenComp.js</code> 的完整实现</td>
+<td>无法确认前端是否存在额外的安全校验</td>
+</tr>
+<tr>
+<td>会话管理机制</td>
+<td>用户认证和会话管理的实现方式</td>
+<td>无法分析会话固定/劫持风险</td>
+</tr>
+<tr>
+<td>统一鉴权流程</td>
+<td><code>$.authUtil</code> 组件的完整鉴权流程</td>
+<td>无法分析统一鉴权场景下的安全风险</td>
+</tr>
+<tr>
+<td>场景化融合组件</td>
+<td><code>$.FusionUtil.buildBusiData</code> 的详细实现</td>
+<td>无法分析场景化流程中的数据流转安全</td>
+</tr>
+</tbody>
+</table>
+
+</body>
+</html>

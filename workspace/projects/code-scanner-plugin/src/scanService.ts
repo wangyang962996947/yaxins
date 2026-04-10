@@ -1,117 +1,107 @@
 /**
  * scanService.ts — 核心业务逻辑
- * 流程：提交任务 → 轮询 MinIO → 返回 MD 内容
+ * 流程：提交任务 → 轮询 MinIO → 返回报告列表
  */
 
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 
-// ============= 模式切换 =============
-const USE_MOCK = true  // ← 改 false 使用真实 MinIO
+// ============= 报告项类型 =============
 
-// 动态导入，避免未安装 minio 时 build 报错
-async function getMinioClient() {
-  if (USE_MOCK) {
-    const m = await import('./mockMinioClient')
-    return { fileExists: m.fileExists, downloadTextFile: m.downloadTextFile }
-  } else {
-    const m = await import('./minio')
-    return { fileExists: m.fileExists, downloadTextFile: m.downloadTextFile }
+export type ReportItem = {
+  index: number          // 序号
+  filename: string        // 文件名
+  generateTime: string    // 生成时间
+  htmlContent: string     // HTML 内容
+}
+
+// ============= 动态导入模拟器（真实对接时替换这里） =============
+
+async function getSimulator() {
+  const m = await import('./simulator')
+  return {
+    submitScanTask: m.submitScanTask,
+    fileExists: m.fileExists,
+    downloadReportList: m.downloadReportList,
   }
 }
 
 // ============= 配置 =============
-const BACKEND_SUBMIT_URL = USE_MOCK
-  ? 'http://localhost:3001/api/scan/submit'
-  : '/api/scan/submit'
 
-const POLL_INTERVAL_MS = USE_MOCK ? 5_000 : 10_000
-const MAX_WAIT_MS = USE_MOCK ? 5 * 60 * 1000 : 15 * 60 * 1000
-// ==================================
+const MINIO_UPLOAD_URL = 'http://10.28.198.153:9010/code-scanning/'
+const API_BASE = '/api'
 
-let _canceled = false
+// ============= 提示词构造 =============
 
-// ============= 导出函数 =============
-
-export function generateUUID(): string {
-  return uuidv4()
-}
-
-export function buildPromptWithUploadInstruction(
-  originalPrompt: string,
-  _uuid: string
-): string {
-  if (USE_MOCK) {
-    return `${originalPrompt}\n\n请生成一份中文 Markdown 格式的代码扫描报告。`
-  }
-  return `${originalPrompt}
+export function buildPromptWithUploadInstruction(prompt: string, uuid: string): string {
+  return `${prompt}
 
 请将生成的代码扫描报告文件上传到 MinIO 对象存储：
-- MinIO 地址：10.28.198.153:9010
+- 地址：${MINIO_UPLOAD_URL}
 - 用户名：admin
-- 密码：A12345678
-- 存储桶：code-scanning
-- 文件名：${_uuid}
-（请直接上传原始 Markdown 文件，不要压缩）`
+- 桶名：code-scanning
+- 文件名：${uuid}.md`
 }
+
+// ============= 提交扫描任务 =============
 
 export async function submitScanTask(
   zipFile: File,
   enrichedPrompt: string,
   uuid: string
-): Promise<{ uuid: string }> {
+): Promise<{ uuid: string; status: string; message: string }> {
   const formData = new FormData()
-  formData.append('file', zipFile)
-  formData.append('prompt', enrichedPrompt)
   formData.append('uuid', uuid)
+  formData.append('prompt', enrichedPrompt)
+  formData.append('file', zipFile)
 
-  const response = await axios.post(BACKEND_SUBMIT_URL, formData, {
+  const res = await axios.post(`${API_BASE}/scan/submit`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 30_000,
   })
-  return response.data
+  return res.data
 }
+
+// ============= 轮询等待结果（返回报告列表） =============
 
 export async function waitForResult(
   uuid: string,
-  onProgress?: (elapsedMs: number) => void,
-  onTick?: () => void
-): Promise<string> {
-  _canceled = false
+  onElapsed?: (ms: number) => void,
+  onPoll?: () => void
+): Promise<ReportItem[]> {
+  const sim = await getSimulator()
   const startTime = Date.now()
-  const deadline = startTime + MAX_WAIT_MS
-  const { fileExists, downloadTextFile } = await getMinioClient()
+  const MAX_WAIT_MS = 10 * 60 * 1000
 
-  while (!_canceled && Date.now() < deadline) {
-    const elapsed = Date.now() - startTime
-    onProgress?.(elapsed)
+  while (Date.now() - startTime < MAX_WAIT_MS) {
+    onPoll?.()
 
     try {
-      const exists = await fileExists(uuid)
-      if (exists) {
-        const content = await downloadTextFile(uuid)
-        return content
+      const ready = await sim.fileExists(uuid)
+      if (ready) {
+        const items = await sim.downloadReportList(uuid)
+        console.info(`[scanService] 报告列表就绪，共 ${items.length} 份`)
+        return items
       }
-    } catch (err) {
-      console.warn(`[waitForResult] 轮询出错:`, err)
+    } catch (err: any) {
+      console.warn(`[scanService] 轮询出错: ${err.message}`)
     }
 
-    onTick?.()
-    await sleep(POLL_INTERVAL_MS)
+    onElapsed?.(Date.now() - startTime)
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((r) => setTimeout(r, 2000))
   }
 
-  if (_canceled) throw new Error('用户取消了扫描')
-  throw new Error(`扫描超时（等待超过 ${MAX_WAIT_MS / 1000} 秒）`)
+  throw new Error('等待超时，报告未能在规定时间内生成')
 }
 
-export function cancelWait(): void {
-  _canceled = true
+// ============= 取消轮询 =============
+
+let currentController: AbortController | null = null
+
+export function cancelWait() {
+  currentController?.abort()
 }
 
-export function resetCancel(): void {
-  _canceled = false
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+export function resetCancel() {
+  currentController = null
 }
