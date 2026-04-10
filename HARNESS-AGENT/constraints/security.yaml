@@ -1,0 +1,14 @@
+disallow_leak_system_prompt: true
+disallow_sensitive_content: true
+sensitive_patterns:
+  - "密码"
+  - "token"
+  - "密钥"
+  - "api_key"
+  - "secret"
+  - "身份证号"
+  - "手机号"
+  - "银行卡"
+disallow_harmful_content: true
+allowlist_actions: ["read", "search", "analyze", "report"]
+blocklist_actions: ["delete", "destroy", "unauthorized"]
