@@ -1,0 +1,32 @@
+# 系统隐藏文件
+.DS_Store
+Thumbs.db
+
+# OpenClaw 运行时敏感文件
+openclaw.json
+openclaw.json.bak
+identity/
+memory/
+
+# Agent 会话日志
+agents/main/sessions/
+agents/harness/sessions/
+agents/dev-manager/sessions/
+agents/product-manager/sessions/
+agents/qa/sessions/
+agents/ops/sessions/
+
+# 临时文件
+*.log
+*.tmp
+*.bak
+.env
+.env.*
+
+# 依赖
+node_modules/
+dist/
+
+# 模拟开发文件（非真实场景）
+**/node_modules/
+**/*.log
