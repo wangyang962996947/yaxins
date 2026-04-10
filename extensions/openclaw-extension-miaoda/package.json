@@ -1,0 +1,26 @@
+{
+  "name": "@lark-apaas/openclaw-extension-miaoda",
+  "version": "1.0.5",
+  "description": "妙搭 OpenClaw 插件",
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "build:dev": "MINIFY=false tsdown",
+    "prune": "npm install --omit=dev",
+    "test": "vitest run",
+    "test:cov": "vitest --coverage",
+    "ci": "npm run test"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/index.mjs"
+    ]
+  },
+  "devDependencies": {
+    "@lark-apaas/http-client": "^0.1.2",
+    "@vitest/coverage-v8": "^4.1.1",
+    "openclaw": "^2026.3.2",
+    "tsdown": "^0.21.0",
+    "vitest": "^4.0.18"
+  }
+}

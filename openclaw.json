@@ -1,0 +1,489 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.3.24",
+    "lastTouchedAt": "2026-04-07T06:14:42.073Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-03-30T14:54:56.160Z",
+    "lastRunVersion": "2026.3.24",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "update": {
+    "checkOnStart": false
+  },
+  "browser": {
+    "enabled": true,
+    "color": "#00AA00",
+    "executablePath": "/usr/bin/chromium-browser",
+    "headless": true,
+    "noSandbox": true,
+    "defaultProfile": "openclaw",
+    "extraArgs": [
+      "--window-size=1920,1080",
+      "--test-type",
+      "--disable-gpu",
+      "--no-sandbox"
+    ]
+  },
+  "secrets": {
+    "providers": {
+      "miaoda-provider": {
+        "source": "file",
+        "path": "/home/gem/workspace/.force/openclaw/miaoda-provider-key",
+        "mode": "singleValue"
+      },
+      "miaoda-secret-provider": {
+        "source": "file",
+        "path": "/home/gem/workspace/.force/openclaw/miaoda-openclaw-secrets.json",
+        "mode": "json"
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "miaoda": {
+        "baseUrl": "https://innerapi.aiforce.cloud/innerapi/api/v1/sgw/model/proxy",
+        "apiKey": {
+          "source": "file",
+          "provider": "miaoda-provider",
+          "id": "value"
+        },
+        "api": "openai-completions",
+        "headers": {
+          "x-api-key": {
+            "source": "file",
+            "provider": "miaoda-secret-provider",
+            "id": "/models_providers_miaoda_headers_x_api_key"
+          }
+        },
+        "models": [
+          {
+            "id": "miaoda-model-auto",
+            "name": "妙搭",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "miaoda-auto-multimodal",
+            "name": "妙搭多模态",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "miaoda-model-flash",
+            "name": "妙搭 Flash",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "miaoda/miaoda-model-auto"
+      },
+      "imageModel": "miaoda/miaoda-auto-multimodal",
+      "imageGenerationModel": {
+        "primary": "miaoda/miaoda-image-gen"
+      },
+      "models": {
+        "miaoda/miaoda-model-auto": {
+          "alias": "Miaoda Auto"
+        },
+        "miaoda/miaoda-auto-multimodal": {
+          "alias": "Miaoda Multimodal"
+        },
+        "miaoda/miaoda-model-flash": {
+          "alias": "Miaoda Flash"
+        }
+      },
+      "workspace": "/home/gem/workspace/agent/workspace",
+      "compaction": {
+        "mode": "safeguard",
+        "reserveTokensFloor": 50000
+      },
+      "verboseDefault": "off",
+      "blockStreamingCoalesce": {
+        "minChars": 20,
+        "maxChars": 800,
+        "idleMs": 300
+      },
+      "humanDelay": {
+        "mode": "off"
+      },
+      "heartbeat": {
+        "every": "4h",
+        "activeHours": {
+          "start": "08:00",
+          "end": "22:00"
+        },
+        "model": "miaoda/miaoda-model-flash"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "tools": {
+    "profile": "full",
+    "alsoAllow": [
+      "feishu_bitable_app",
+      "feishu_bitable_app_table",
+      "feishu_bitable_app_table_field",
+      "feishu_bitable_app_table_record",
+      "feishu_bitable_app_table_view",
+      "feishu_calendar_calendar",
+      "feishu_calendar_event",
+      "feishu_calendar_event_attendee",
+      "feishu_calendar_freebusy",
+      "feishu_chat",
+      "feishu_chat_members",
+      "feishu_create_doc",
+      "feishu_doc_comments",
+      "feishu_doc_media",
+      "feishu_drive_file",
+      "feishu_fetch_doc",
+      "feishu_get_user",
+      "feishu_im_bot_image",
+      "feishu_im_user_fetch_resource",
+      "feishu_im_user_get_messages",
+      "feishu_im_user_get_thread_messages",
+      "feishu_im_user_message",
+      "feishu_im_user_search_messages",
+      "feishu_oauth",
+      "feishu_oauth_batch_auth",
+      "feishu_search_doc_wiki",
+      "feishu_search_user",
+      "feishu_sheet",
+      "feishu_task_comment",
+      "feishu_task_subtask",
+      "feishu_task_task",
+      "feishu_task_tasklist",
+      "feishu_update_doc",
+      "feishu_wiki_space",
+      "feishu_wiki_space_node"
+    ],
+    "deny": [
+      "web_fetch",
+      "tts",
+      "agents_list",
+      "feishu_task_task",
+      "feishu_task_tasklist",
+      "feishu_task_comment",
+      "feishu_task_subtask",
+      "feishu_bitable_app_table_view",
+      "feishu_doc_comments",
+      "feishu_doc_media",
+      "feishu_drive_file",
+      "feishu_wiki_space",
+      "feishu_wiki_space_node",
+      "feishu_sheet"
+    ],
+    "web": {
+      "search": {
+        "provider": "miaoda"
+      }
+    },
+    "media": {
+      "image": {
+        "models": [
+          {
+            "provider": "miaoda"
+          }
+        ]
+      },
+      "audio": {
+        "models": [
+          {
+            "provider": "miaoda"
+          }
+        ]
+      }
+    },
+    "sessions": {
+      "visibility": "all"
+    }
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
+  "channels": {
+    "feishu": {
+      "enabled": true,
+      "appId": "cli_a95231f371795bcb",
+      "appSecret": {
+        "source": "file",
+        "provider": "miaoda-secret-provider",
+        "id": "/channels_feishu_app_secret"
+      },
+      "domain": "feishu",
+      "requireMention": true,
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "ou_0b09d73328aba9ee56b8bb871bf3fb3a"
+      ],
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": [
+        "ou_0b09d73328aba9ee56b8bb871bf3fb3a"
+      ],
+      "groups": {
+        "*": {
+          "enabled": true
+        }
+      },
+      "streaming": false,
+      "threadSession": true,
+      "footer": {
+        "elapsed": false,
+        "status": false
+      }
+    }
+  },
+  "discovery": {
+    "mdns": {
+      "mode": "off"
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "controlUi": {
+      "allowedOrigins": [
+        "https://asiainfo-sec-app_4jwubcgq4yktm-1862057706359895.aiforce.run",
+        "https://miaoda.feishu.cn"
+      ],
+      "dangerouslyDisableDeviceAuth": true
+    },
+    "auth": {
+      "mode": "token",
+      "token": "af7ea4ec141094fe934cdf05219ea0cb4636d9142a7b66bd"
+    },
+    "trustedProxies": [
+      "::1",
+      "127.0.0.1"
+    ],
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    }
+  },
+  "skills": {
+    "install": {
+      "nodeManager": "npm"
+    },
+    "entries": {
+      "1password": {
+        "enabled": false
+      },
+      "apple-notes": {
+        "enabled": false
+      },
+      "apple-reminders": {
+        "enabled": false
+      },
+      "bear-notes": {
+        "enabled": false
+      },
+      "bluebubbles": {
+        "enabled": false
+      },
+      "blucli": {
+        "enabled": false
+      },
+      "camsnap": {
+        "enabled": false
+      },
+      "coding-agent": {
+        "enabled": false
+      },
+      "discord": {
+        "enabled": false
+      },
+      "eightctl": {
+        "enabled": false
+      },
+      "gemini": {
+        "enabled": false
+      },
+      "gifgrep": {
+        "enabled": false
+      },
+      "gog": {
+        "enabled": false
+      },
+      "goplaces": {
+        "enabled": false
+      },
+      "imsg": {
+        "enabled": false
+      },
+      "model-usage": {
+        "enabled": false
+      },
+      "notion": {
+        "enabled": false
+      },
+      "openai-image-gen": {
+        "enabled": false
+      },
+      "openai-whisper": {
+        "enabled": false
+      },
+      "openai-whisper-api": {
+        "enabled": false
+      },
+      "openhue": {
+        "enabled": false
+      },
+      "oracle": {
+        "enabled": false
+      },
+      "ordercli": {
+        "enabled": false
+      },
+      "peekaboo": {
+        "enabled": false
+      },
+      "sag": {
+        "enabled": false
+      },
+      "slack": {
+        "enabled": false
+      },
+      "sonoscli": {
+        "enabled": false
+      },
+      "spotify-player": {
+        "enabled": false
+      },
+      "summarize": {
+        "enabled": false
+      },
+      "things-mac": {
+        "enabled": false
+      },
+      "trello": {
+        "enabled": false
+      },
+      "voice-call": {
+        "enabled": false
+      },
+      "wacli": {
+        "enabled": false
+      },
+      "xurl": {
+        "enabled": false
+      },
+      "feishu-task": {
+        "enabled": false
+      },
+      "gh-issues": {
+        "enabled": false
+      },
+      "github": {
+        "enabled": false
+      },
+      "tmux": {
+        "enabled": false
+      }
+    }
+  },
+  "plugins": {
+    "allow": [
+      "openclaw-lark",
+      "openclaw-extension-miaoda"
+    ],
+    "entries": {
+      "feishu": {
+        "enabled": false
+      },
+      "openclaw-extension-miaoda": {
+        "enabled": true,
+        "config": {
+          "greeting": {
+            "message": "👋 Hi，我是**WY-龙瞎**，一只生活在飞书里的 🦞 小龙虾，打个招呼，我们开始认识一下？",
+            "targets": [
+              "ou_0b09d73328aba9ee56b8bb871bf3fb3a"
+            ]
+          }
+        }
+      },
+      "openclaw-lark": {
+        "enabled": true
+      }
+    },
+    "installs": {
+      "openclaw-lark": {
+        "source": "npm",
+        "spec": "@lark-apaas/openclaw-lark",
+        "installPath": "./extensions/openclaw-lark",
+        "version": "2026.4.3",
+        "resolvedName": "@lark-apaas/openclaw-lark",
+        "resolvedVersion": "2026.4.3",
+        "resolvedSpec": "@lark-apaas/openclaw-lark@2026.4.3",
+        "integrity": "sha512-1eJ2WCvAYsnM9TPwPbEoD3nJtqNSOP2zOBV/3Vb9YQRg1kJJspEly5yCjiZt1wew4UhyN8Tcrp/XV78Qn747GA==",
+        "shasum": "e8d8cf05f8cb96cf5de4bca097c527eb9116e655",
+        "resolvedAt": "2026-04-03T06:27:44.706Z",
+        "installedAt": "2026-04-03T06:28:10.547Z"
+      },
+      "openclaw-extension-miaoda": {
+        "source": "npm",
+        "spec": "@lark-apaas/openclaw-extension-miaoda",
+        "installPath": "./extensions/openclaw-extension-miaoda",
+        "version": "1.0.5",
+        "resolvedName": "@lark-apaas/openclaw-extension-miaoda",
+        "resolvedVersion": "1.0.5",
+        "resolvedSpec": "@lark-apaas/openclaw-extension-miaoda@1.0.5",
+        "integrity": "sha512-eIXFf38von1f72nFScNzJlCJIVxzYtVS0NgCOvV9SlGrFmr1xUlMvLxtIXYa7M+4E7+9816+3gqdmMYv8JqnZA==",
+        "shasum": "27f36d085fafd1a1c9a15ee25b03d9723f37943a",
+        "resolvedAt": "2026-04-07T06:14:41.636Z",
+        "installedAt": "2026-04-07T06:14:42.036Z"
+      }
+    }
+  }
+}
